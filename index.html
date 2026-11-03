@@ -517,30 +517,189 @@ function aiBid(playerIdx) {
   const hand = S.hands[playerIdx];
   const bid = S.currentBid;
 
+  // === ÉVALUATION STRUCTURELLE PAR MODE ===
+  // Ne compte plus les points bruts, mais pondère selon la VRAIE valeur stratégique
+
+  function evalColor(color) {
+    const trumps = hand.filter(c => c.suit === color);
+    let score = 0;
+    let hasJ = false, has9 = false;
+
+    for (const c of trumps) {
+      if (c.rank === 'J')      { score += 10; hasJ = true; }
+      else if (c.rank === '9') { score += 8;  has9 = true; }
+      else if (c.rank === 'A') { score += 5; }
+      else if (c.rank === '10'){ score += 4; }
+      else if (c.rank === 'K') { score += 1; }
+    }
+    // As et 10 hors atout = futures levées
+    for (const c of hand) {
+      if (c.suit !== color) {
+        if (c.rank === 'A')      score += 3;
+        else if (c.rank === '10') score += 2;
+      }
+    }
+    // Bonus/malus structurels
+    if (hasJ && has9)         score += 5;
+    if (trumps.length === 0)  score -= 8;
+    else if (trumps.length === 1) score -= 5;
+    else if (trumps.length === 2) score -= 2;
+    else if (trumps.length >= 4)  score += 2;
+
+    return { score, trumps: trumps.length };
+  }
+
+  function evalNone() {
+    let score = 0;
+    for (const c of hand) {
+      if (c.rank === 'A')      score += 6;
+      else if (c.rank === '10') score += 4;
+      else if (c.rank === 'K')  score += 2;
+      else if (c.rank === 'Q')  score += 1;
+    }
+    return { score };
+  }
+
+  function evalAll() {
+    let score = 0, jCount = 0, nineCount = 0;
+    for (const c of hand) {
+      if (c.rank === 'J')      { score += 8; jCount++; }
+      else if (c.rank === '9') { score += 6; nineCount++; }
+      else if (c.rank === 'A') score += 3;
+      else if (c.rank === '10')score += 2;
+      else if (c.rank === 'K') score += 1;
+    }
+    // Moins de 2 J/9 au total = tout atout risqué
+    if (jCount + nineCount < 2) score -= 8;
+    return { score, jCount, nineCount };
+  }
+
+  // Calcul de toutes les évaluations
+  const evals = {};
+  for (const m of ['♣', '♦', '♥', '♠']) evals[m] = evalColor(m);
+  evals['none'] = evalNone();
+  evals['all']  = evalAll();
+
+  // ============================================================
+  // 1) PREMIER ENCHÉRISSEUR : doit choisir (mais intelligemment)
+  // ============================================================
   if (!bid) {
-    const best = aiChooseBestMode(hand);
-    doBid(playerIdx, best.mode);
+    let bestMode = '♣';
+    let bestScore = -Infinity;
+
+    for (const m of BID_ORDER) {
+      const e = evals[m];
+      // Seuils minimums par mode (empêche de choisir un mode non viable)
+      if (m === 'all'  && e.score < 22) continue;
+      if (m === 'none' && e.score < 18) continue;
+      if (m !== 'all' && m !== 'none' && e.score < 15) continue;
+
+      if (e.score > bestScore) {
+        bestScore = e.score;
+        bestMode = m;
+      }
+    }
+    // Fallback : obligation d'annoncer → on prend le moins mauvais
+    if (bestScore === -Infinity) {
+      for (const m of BID_ORDER) {
+        if (evals[m].score > bestScore) {
+          bestScore = evals[m].score;
+          bestMode = m;
+        }
+      }
+    }
+    doBid(playerIdx, bestMode);
     return;
   }
 
-  const higher = higherBids();
-  let bestRaise = null, bestRaiseScore = 0;
-  for (const m of higher) {
-    const sc = aiEvalHand(hand, m);
-    if (sc > bestRaiseScore) { bestRaiseScore = sc; bestRaise = m; }
-  }
-  if (bestRaise && bestRaiseScore >= 22) { doBid(playerIdx, bestRaise); return; }
+  const sameTeam = TEAM[playerIdx] === TEAM[bid.player];
+  const myEval = evals[bid.suit];
 
+  // ============================================================
+  // 2) CONTRER (×2) — uniquement contre l'adversaire
+  // ============================================================
   if (canCounter(playerIdx)) {
-    const defScore = aiEvalHand(hand, bid.suit);
-    if (defScore >= 24) { doCounter(playerIdx); return; }
+    let worthCounter = false;
+
+    if (bid.suit === 'none') {
+      const aces = hand.filter(c => c.rank === 'A').length;
+      const tens = hand.filter(c => c.rank === '10').length;
+      worthCounter = (aces + tens) >= 3;
+    } else if (bid.suit === 'all') {
+      worthCounter = (myEval.jCount + myEval.nineCount) >= 3;
+    } else {
+      const trumps = hand.filter(c => c.suit === bid.suit);
+      const hasJ = trumps.some(c => c.rank === 'J');
+      const has9 = trumps.some(c => c.rank === '9');
+      worthCounter = trumps.length >= 3 || (trumps.length >= 2 && (hasJ || has9));
+    }
+    if (worthCounter && Math.random() < 0.55) {
+      doCounter(playerIdx);
+      return;
+    }
   }
 
+  // ============================================================
+  // 3) SURCONTRER (×4) — main exceptionnelle
+  // ============================================================
   if (canSurcounter(playerIdx)) {
-    const defScore = aiEvalHand(hand, bid.suit);
-    if (defScore >= 30) { doSurcounter(playerIdx); return; }
+    let worthSurcounter = false;
+
+    if (bid.suit === 'none') {
+      worthSurcounter = myEval.score >= 24;
+    } else if (bid.suit === 'all') {
+      worthSurcounter = myEval.jCount >= 2 && myEval.nineCount >= 1;
+    } else {
+      const trumps = hand.filter(c => c.suit === bid.suit);
+      worthSurcounter = trumps.length >= 4
+                     && trumps.some(c => c.rank === 'J')
+                     && trumps.some(c => c.rank === '9');
+    }
+    if (worthSurcounter && Math.random() < 0.5) {
+      doSurcounter(playerIdx);
+      return;
+    }
   }
 
+  // ============================================================
+  // 4) MONTER — seulement si on n'est pas partenaire du preneur
+  // ============================================================
+  if (!sameTeam) {
+    const higher = higherBids();
+    let bestRaise = null, bestRaiseScore = 0;
+
+    for (const m of higher) {
+      const e = evals[m];
+
+      // Garde-fous spécifiques
+      if (m === 'all' && (e.jCount + e.nineCount) < 2) continue;
+      if (m === 'none' && e.score < 16) continue;
+
+      // Couleur : au moins 2 atouts dont J ou 9 (ou 3+ atouts)
+      if (m !== 'all' && m !== 'none') {
+        const trumps = hand.filter(c => c.suit === m);
+        const hasJ = trumps.some(c => c.rank === 'J');
+        const has9 = trumps.some(c => c.rank === '9');
+        if (trumps.length < 2) continue;
+        if (trumps.length === 2 && !hasJ && !has9) continue;
+      }
+
+      if (e.score > bestRaiseScore) {
+        bestRaiseScore = e.score;
+        bestRaise = m;
+      }
+    }
+
+    // Seuil global de montée (assez fort, mais pas trop strict)
+    if (bestRaise && bestRaiseScore >= 20 && Math.random() < 0.35) {
+      doBid(playerIdx, bestRaise);
+      return;
+    }
+  }
+
+  // ============================================================
+  // 5) PASSER
+  // ============================================================
   doPass(playerIdx);
 }
 
