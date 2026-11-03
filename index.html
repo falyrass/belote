@@ -251,13 +251,12 @@ function sortHand(hand, trump) {
   });
 }
 
-// ==================== FIND WINNER (CORRIGÉ) ====================
+// ==================== FIND WINNER ====================
 function findWinner(trick, trump) {
   if (!trick.length) return null;
   const leadSuit = trick[0].card.suit;
   let w = trick[0];
 
-  // SANS ATOUT : la plus haute carte de la couleur demandée gagne
   if (trump === 'none') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
@@ -269,8 +268,6 @@ function findWinner(trick, trump) {
     return w.player;
   }
 
-  // TOUT ATOUT : SEULE la plus haute carte de la COULEUR DEMANDÉE gagne
-  // (les cartes d'autres couleurs ne peuvent jamais remporter le pli)
   if (trump === 'all') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
@@ -282,7 +279,6 @@ function findWinner(trick, trump) {
     return w.player;
   }
 
-  // COULEUR (Pique/Carreau/Coeur/Trèfle) : règles standard Belote
   for (let i = 1; i < trick.length; i++) {
     const c = trick[i];
     if (c.card.suit === w.card.suit) {
@@ -295,18 +291,16 @@ function findWinner(trick, trump) {
   return w.player;
 }
 
-// ==================== VALID MOVES (CORRIGÉ) ====================
+// ==================== VALID MOVES ====================
 function validMoves(hand, trick, trump, playerIdx) {
   if (!trick.length) return [...hand];
   const leadSuit = trick[0].card.suit;
   const sameSuit = hand.filter(c => c.suit === leadSuit);
 
-  // SANS ATOUT : aucune obligation de monter
   if (trump === 'none') {
     return sameSuit.length ? sameSuit : [...hand];
   }
 
-  // TOUT ATOUT : obligation de monter dans la COULEUR DEMANDÉE si possible
   if (trump === 'all') {
     if (sameSuit.length) {
       const leadCards = trick.filter(t => t.card.suit === leadSuit);
@@ -316,16 +310,13 @@ function validMoves(hand, trick, trump, playerIdx) {
         ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
       return higher.length ? higher : sameSuit;
     }
-    // Pas la couleur demandée → jouer n'importe quoi (ne peut pas gagner)
     return [...hand];
   }
 
-  // COULEUR (Pique/Carreau/Coeur/Trèfle) : règles standard
   const trumps = hand.filter(c => c.suit === trump);
 
   if (sameSuit.length) {
     if (leadSuit === trump) {
-      // L'atout est mené → obligation de surcouper
       const trickTrumps = trick.filter(t => t.card.suit === trump);
       const highestInTrick = trickTrumps.reduce((m, t) =>
         ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
@@ -333,14 +324,11 @@ function validMoves(hand, trick, trump, playerIdx) {
         ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
       return higher.length ? higher : sameSuit;
     }
-    // Couleur normale menée → pas d'obligation de monter
     return sameSuit;
   }
 
-  // Pas la couleur demandée
   if (!trumps.length) return [...hand];
 
-  // Obligation de couper
   const winner = findWinner(trick, trump);
   if (winner === PARTNER[playerIdx]) return [...hand];
 
@@ -377,7 +365,7 @@ function resetState() {
     roundPoints: [0, 0], belote: { K: false, Q: false, K_team: null, Q_team: null },
     roundOutcome: 'normal', roundWinner: null,
     roundOver: false, gameOver: false, aiTimer: null,
-    trickResolved: false
+    trickResolved: false, animating: false
   };
 }
 
@@ -486,7 +474,7 @@ function startRound() {
   S.tricksWon = [[], [], [], []]; S.roundPoints = [0, 0];
   S.belote = { K: false, Q: false, K_team: null, Q_team: null };
   S.roundOutcome = 'normal'; S.roundWinner = null;
-  S.roundOver = false; S.trickResolved = false; S.lastTrickWinner = null;
+  S.roundOver = false; S.trickResolved = false; S.lastTrickWinner = null; S.animating = false;
 
   const deck = shuffle(createDeck());
   S.reserveDeck = deck.slice(20);
@@ -500,25 +488,10 @@ function startRound() {
   else showMessage('À vous d\'ouvrir les enchères');
 }
 
-function aiEvalHand(hand, mode) {
-  return hand.reduce((s, c) => s + cardPoints(c, mode), 0);
-}
-
-function aiChooseBestMode(hand) {
-  let best = BID_ORDER[0], bestScore = 0;
-  for (const m of BID_ORDER) {
-    const sc = aiEvalHand(hand, m);
-    if (sc > bestScore) { bestScore = sc; best = m; }
-  }
-  return { mode: best, score: bestScore };
-}
-
+// ==================== AI BID (avec analyse structurelle) ====================
 function aiBid(playerIdx) {
   const hand = S.hands[playerIdx];
   const bid = S.currentBid;
-
-  // === ÉVALUATION STRUCTURELLE PAR MODE ===
-  // Ne compte plus les points bruts, mais pondère selon la VRAIE valeur stratégique
 
   function evalColor(color) {
     const trumps = hand.filter(c => c.suit === color);
@@ -532,21 +505,19 @@ function aiBid(playerIdx) {
       else if (c.rank === '10'){ score += 4; }
       else if (c.rank === 'K') { score += 1; }
     }
-    // As et 10 hors atout = futures levées
     for (const c of hand) {
       if (c.suit !== color) {
         if (c.rank === 'A')      score += 3;
         else if (c.rank === '10') score += 2;
       }
     }
-    // Bonus/malus structurels
     if (hasJ && has9)         score += 5;
     if (trumps.length === 0)  score -= 8;
     else if (trumps.length === 1) score -= 5;
     else if (trumps.length === 2) score -= 2;
     else if (trumps.length >= 4)  score += 2;
 
-    return { score, trumps: trumps.length };
+    return { score, trumps: trumps.length, hasJ, has9 };
   }
 
   function evalNone() {
@@ -569,43 +540,29 @@ function aiBid(playerIdx) {
       else if (c.rank === '10')score += 2;
       else if (c.rank === 'K') score += 1;
     }
-    // Moins de 2 J/9 au total = tout atout risqué
     if (jCount + nineCount < 2) score -= 8;
     return { score, jCount, nineCount };
   }
 
-  // Calcul de toutes les évaluations
   const evals = {};
   for (const m of ['♣', '♦', '♥', '♠']) evals[m] = evalColor(m);
   evals['none'] = evalNone();
   evals['all']  = evalAll();
 
-  // ============================================================
-  // 1) PREMIER ENCHÉRISSEUR : doit choisir (mais intelligemment)
-  // ============================================================
+  // 1) PREMIER ENCHÉRISSEUR
   if (!bid) {
     let bestMode = '♣';
     let bestScore = -Infinity;
-
     for (const m of BID_ORDER) {
       const e = evals[m];
-      // Seuils minimums par mode (empêche de choisir un mode non viable)
       if (m === 'all'  && e.score < 22) continue;
       if (m === 'none' && e.score < 18) continue;
       if (m !== 'all' && m !== 'none' && e.score < 15) continue;
-
-      if (e.score > bestScore) {
-        bestScore = e.score;
-        bestMode = m;
-      }
+      if (e.score > bestScore) { bestScore = e.score; bestMode = m; }
     }
-    // Fallback : obligation d'annoncer → on prend le moins mauvais
     if (bestScore === -Infinity) {
       for (const m of BID_ORDER) {
-        if (evals[m].score > bestScore) {
-          bestScore = evals[m].score;
-          bestMode = m;
-        }
+        if (evals[m].score > bestScore) { bestScore = evals[m].score; bestMode = m; }
       }
     }
     doBid(playerIdx, bestMode);
@@ -615,12 +572,9 @@ function aiBid(playerIdx) {
   const sameTeam = TEAM[playerIdx] === TEAM[bid.player];
   const myEval = evals[bid.suit];
 
-  // ============================================================
-  // 2) CONTRER (×2) — uniquement contre l'adversaire
-  // ============================================================
+  // 2) CONTRER
   if (canCounter(playerIdx)) {
     let worthCounter = false;
-
     if (bid.suit === 'none') {
       const aces = hand.filter(c => c.rank === 'A').length;
       const tens = hand.filter(c => c.rank === '10').length;
@@ -633,18 +587,12 @@ function aiBid(playerIdx) {
       const has9 = trumps.some(c => c.rank === '9');
       worthCounter = trumps.length >= 3 || (trumps.length >= 2 && (hasJ || has9));
     }
-    if (worthCounter && Math.random() < 0.55) {
-      doCounter(playerIdx);
-      return;
-    }
+    if (worthCounter && Math.random() < 0.55) { doCounter(playerIdx); return; }
   }
 
-  // ============================================================
-  // 3) SURCONTRER (×4) — main exceptionnelle
-  // ============================================================
+  // 3) SURCONTRER
   if (canSurcounter(playerIdx)) {
     let worthSurcounter = false;
-
     if (bid.suit === 'none') {
       worthSurcounter = myEval.score >= 24;
     } else if (bid.suit === 'all') {
@@ -655,27 +603,17 @@ function aiBid(playerIdx) {
                      && trumps.some(c => c.rank === 'J')
                      && trumps.some(c => c.rank === '9');
     }
-    if (worthSurcounter && Math.random() < 0.5) {
-      doSurcounter(playerIdx);
-      return;
-    }
+    if (worthSurcounter && Math.random() < 0.5) { doSurcounter(playerIdx); return; }
   }
 
-  // ============================================================
-  // 4) MONTER — seulement si on n'est pas partenaire du preneur
-  // ============================================================
+  // 4) MONTER
   if (!sameTeam) {
     const higher = higherBids();
     let bestRaise = null, bestRaiseScore = 0;
-
     for (const m of higher) {
       const e = evals[m];
-
-      // Garde-fous spécifiques
       if (m === 'all' && (e.jCount + e.nineCount) < 2) continue;
       if (m === 'none' && e.score < 16) continue;
-
-      // Couleur : au moins 2 atouts dont J ou 9 (ou 3+ atouts)
       if (m !== 'all' && m !== 'none') {
         const trumps = hand.filter(c => c.suit === m);
         const hasJ = trumps.some(c => c.rank === 'J');
@@ -683,23 +621,15 @@ function aiBid(playerIdx) {
         if (trumps.length < 2) continue;
         if (trumps.length === 2 && !hasJ && !has9) continue;
       }
-
-      if (e.score > bestRaiseScore) {
-        bestRaiseScore = e.score;
-        bestRaise = m;
-      }
+      if (e.score > bestRaiseScore) { bestRaiseScore = e.score; bestRaise = m; }
     }
-
-    // Seuil global de montée (assez fort, mais pas trop strict)
     if (bestRaise && bestRaiseScore >= 20 && Math.random() < 0.35) {
       doBid(playerIdx, bestRaise);
       return;
     }
   }
 
-  // ============================================================
   // 5) PASSER
-  // ============================================================
   doPass(playerIdx);
 }
 
@@ -732,62 +662,70 @@ function playCard(playerIdx, card) {
   if (S.currentPlayer !== 0) scheduleAI();
 }
 
+// ==================== ANIMATION VERS LE GAGNANT ====================
 function animateTrickToWinner(winnerPlayer) {
-  // Récupère les 4 wrappers du pli actuel
   const wraps = document.querySelectorAll('.trick-card-wrap');
   if (!wraps.length) return;
-
-  // Cible : position du gagnant (déjà définie par data-player dans le CSS)
   const target = document.querySelector(`.trick-card-wrap[data-player="${winnerPlayer}"]`);
   if (!target) return;
 
   const targetRect = target.getBoundingClientRect();
-  const targetCenterX = targetRect.left + targetRect.width / 2;
-  const targetCenterY = targetRect.top + targetRect.height / 2;
+  const tcx = targetRect.left + targetRect.width / 2;
+  const tcy = targetRect.top + targetRect.height / 2;
 
   wraps.forEach(wrap => {
-    const rect = wrap.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = targetCenterX - cx;
-    const dy = targetCenterY - cy;
+    const r = wrap.getBoundingClientRect();
+    const dx = tcx - (r.left + r.width / 2);
+    const dy = tcy - (r.top + r.height / 2);
 
-    // Le gagnant reste sur place (léger pulse), les autres glissent vers lui
+    wrap.style.transition = 'translate 0.9s cubic-bezier(0.22, 1, 0.36, 1), scale 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
+
     if (wrap === target) {
-      wrap.style.transition = 'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
-      wrap.style.transform = `translate(-50%, -50%) scale(1.15)`;
+      wrap.style.translate = '0 0';
+      wrap.style.scale = '1.15';
       wrap.style.zIndex = '30';
     } else {
-      wrap.style.transition = 'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
-      // translate de base déjà appliqué par le CSS → on ajoute dx/dy par-dessus
-      const currentTransform = getComputedStyle(wrap).transform;
-      wrap.style.transform = `${currentTransform} translate(${dx}px, ${dy}px) scale(0.6)`;
-      wrap.style.opacity = '0.2';
+      wrap.style.translate = `${dx}px ${dy}px`;
+      wrap.style.scale = '0.5';
+      wrap.style.opacity = '0.15';
       wrap.style.zIndex = '25';
     }
   });
 }
 
+// ==================== RESOLVE TRICK (avec animation) ====================
 function resolveTrick() {
-  const winner = findWinner(S.trick, S.trump);
-  const pts = S.trick.reduce((sum, t) => sum + cardPoints(t.card, S.trump), 0);
-  S.tricksWon[winner].push({ cards: [...S.trick], points: pts });
-  S.lastTrickWinner = winner;
-  S.trickNumber++;
-  S.trickResolved = false;
+  if (S.animating) return;
+  S.animating = true;
 
-  if (S.trickNumber > 8) {
+  const winner = findWinner(S.trick, S.trump);
+
+  // 🎬 Lancer l'animation de balayage vers le gagnant
+  animateTrickToWinner(winner);
+
+  // Attendre 1 seconde (durée de l'animation) puis résoudre
+  setTimeout(() => {
+    const pts = S.trick.reduce((sum, t) => sum + cardPoints(t.card, S.trump), 0);
+    S.tricksWon[winner].push({ cards: [...S.trick], points: pts });
+    S.lastTrickWinner = winner;
+    S.trickNumber++;
+    S.trickResolved = false;
+    S.animating = false;
+
+    if (S.trickNumber > 8) {
+      S.trick = [];
+      render();
+      setTimeout(endRound, 800);
+      return;
+    }
     S.trick = [];
+    S.currentPlayer = winner;
     render();
-    setTimeout(endRound, 800);
-    return;
-  }
-  S.trick = [];
-  S.currentPlayer = winner;
-  render();
-  if (S.currentPlayer !== 0) scheduleAI();
+    if (S.currentPlayer !== 0) scheduleAI();
+  }, 1000);
 }
 
+// ==================== AI PLAY ====================
 function aiChooseCard(playerIdx) {
   const hand = S.hands[playerIdx];
   const valid = validMoves(hand, S.trick, S.trump, playerIdx);
@@ -816,6 +754,7 @@ function aiChooseCard(playerIdx) {
 }
 
 function aiPlay(playerIdx) {
+  if (S.animating) return;
   const valid = validMoves(S.hands[playerIdx], S.trick, S.trump, playerIdx);
   if (!valid.length) return;
   const card = Math.random() < 0.15
@@ -827,6 +766,7 @@ function aiPlay(playerIdx) {
 function scheduleAI() {
   clearTimeout(S.aiTimer);
   S.aiTimer = setTimeout(() => {
+    if (S.animating) return;
     if (S.phase === 'bidding' && S.currentPlayer !== 0) aiBid(S.currentPlayer);
     else if (S.phase === 'playing' && S.currentPlayer !== 0 && !S.trickResolved) aiPlay(S.currentPlayer);
   }, 800);
@@ -855,7 +795,6 @@ function endRound() {
   const litige = LITIGE[S.trump];
   let outcome = 'normal';
 
-  // CAPOT
   if (tricksCount[0] === 8 || tricksCount[1] === 8) {
     const capotTeam = tricksCount[0] === 8 ? 0 : 1;
     finalPoints[capotTeam] = 252 * mult;
@@ -864,7 +803,6 @@ function endRound() {
     S.roundWinner = capotTeam;
 
     if (capotTeam !== takerTeam) {
-      // Dedans capot : défaite immédiate du preneur
       S.gameOver = true;
       S.roundOutcome = 'dedans_capot';
       S.roundPoints = finalPoints;
@@ -875,13 +813,11 @@ function endRound() {
       return;
     }
   }
-  // CONTRAT RÉUSSI
   else if (pts[takerTeam] >= litige) {
     finalPoints[0] = pts[0] * mult;
     finalPoints[1] = pts[1] * mult;
     S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
   }
-  // DEDANS
   else {
     finalPoints[takerTeam] = 0;
     finalPoints[oppTeam] = 252 * mult;
@@ -987,10 +923,12 @@ function renderCard(card, inHand, trickEntry) {
   let cls = 'card';
   if (isRed) cls += ' red';
 
-  if (inHand && S.phase === 'playing' && S.currentPlayer === 0) {
+  if (inHand && S.phase === 'playing' && S.currentPlayer === 0 && !S.trickResolved) {
     const valid = validMoves(S.hands[0], S.trick, S.trump, 0);
     const ok = valid.some(c => c.suit === card.suit && c.rank === card.rank);
     cls += ok ? ' playable' : ' disabled';
+  } else if (inHand && S.trickResolved) {
+    cls += ' disabled';
   }
 
   const badge = isTrump && S.trump !== 'none' ? '<div class="trump-badge"></div>' : '';
@@ -1016,7 +954,8 @@ function renderActions() {
     return renderBiddingActions();
   }
   if (S.phase === 'bidding') return `<div class="actions"><div style="color:var(--text-2)">${PLAYER_NAMES[S.currentPlayer]} réfléchit...</div></div>`;
-  if (S.phase === 'playing' && S.currentPlayer === 0) return `<div class="actions"><div style="color:var(--accent-2);font-weight:600;">À vous de jouer !</div></div>`;
+  if (S.phase === 'playing' && S.currentPlayer === 0 && !S.trickResolved) return `<div class="actions"><div style="color:var(--accent-2);font-weight:600;">À vous de jouer !</div></div>`;
+  if (S.phase === 'playing' && S.trickResolved) return `<div class="actions"><div style="color:var(--gold);font-weight:600;">Fin du pli...</div></div>`;
   if (S.phase === 'playing') return `<div class="actions"><div style="color:var(--text-2)">${PLAYER_NAMES[S.currentPlayer]} joue...</div></div>`;
   return '';
 }
