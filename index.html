@@ -21,10 +21,21 @@ html, body { height: 100%; overflow: hidden; -webkit-tap-highlight-color: transp
 body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
 #app { max-width: 1400px; margin: 0 auto; padding: 10px; height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 8px; }
 
-.scores { display: flex; justify-content: center; gap: 30px; padding: 10px; background: var(--bg-2); border-radius: 12px; }
+.scores { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: var(--bg-2); border-radius: 12px; }
+.scores-row { display: flex; justify-content: center; gap: 30px; }
 .score-team { font-size: 0.75em; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
 .score-value { font-size: 1.8em; font-weight: 700; color: var(--accent-2); text-align: center; line-height: 1.1; }
 .score-value.winning { color: var(--gold); text-shadow: 0 0 20px rgba(251,191,36,0.5); }
+.score-target { font-size: 0.7em; color: var(--text-2); text-align: center; }
+
+/* Barre de progression preneur */
+.progress-section { display: flex; flex-direction: column; gap: 4px; }
+.progress-labels { display: flex; justify-content: space-between; font-size: 0.75em; color: var(--text-2); padding: 0 4px; }
+.progress-labels strong { color: var(--text); }
+.progress-bar { position: relative; height: 12px; background: #0f172a; border-radius: 6px; overflow: hidden; border: 1px solid #334155; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s; border-radius: 6px; }
+.progress-fill.success { background: linear-gradient(90deg, #10b981, #34d399); }
+.progress-marker { position: absolute; top: -2px; bottom: -2px; width: 3px; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 
 .table { flex: 1; display: grid; grid-template-columns: 160px 1fr 160px; grid-template-rows: 130px 1fr 190px; gap: 10px; min-height: 0; }
 .seat { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 0; }
@@ -60,7 +71,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .card.disabled { opacity: 0.35; cursor: not-allowed; }
 .card .rank { font-size: 1.6em; line-height: 1; }
 .card .suit { font-size: 2.2em; line-height: 1; margin-top: 4px; }
-.card .trump-badge { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 
 .trick-area { grid-column: 2; grid-row: 2; position: relative; min-height: 260px; min-width: 0; }
 .trick-cards { position: absolute; inset: 0; }
@@ -76,10 +86,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .trick-card-wrap.winner .card { box-shadow: 0 0 20px var(--gold); border: 3px solid var(--gold); }
 .trick-card-wrap.winner .trick-card-owner { color: var(--gold); font-weight: 700; }
 
-.trick-card-wrap.just-played[data-player="0"] .trick-card-anim { animation: slideFromBottom 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
-.trick-card-wrap.just-played[data-player="1"] .trick-card-anim { animation: slideFromRight 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
-.trick-card-wrap.just-played[data-player="2"] .trick-card-anim { animation: slideFromTop 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
-.trick-card-wrap.just-played[data-player="3"] .trick-card-anim { animation: slideFromLeft 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+.trick-card-wrap.just-played[data-player="0"] .trick-card-anim { animation: slideFromBottom 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.trick-card-wrap.just-played[data-player="1"] .trick-card-anim { animation: slideFromRight 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.trick-card-wrap.just-played[data-player="2"] .trick-card-anim { animation: slideFromTop 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+.trick-card-wrap.just-played[data-player="3"] .trick-card-anim { animation: slideFromLeft 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 
 @keyframes slideFromBottom { from { transform: translateY(180px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 @keyframes slideFromTop    { from { transform: translateY(-180px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -127,7 +137,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 @media (max-width: 900px) {
   :root { --card-w: 80px; --card-h: 120px; --card-back-w: 52px; --card-back-h: 78px; --trick-offset: 70px; --hand-overlap: -32px; }
   #app { padding: 8px; gap: 6px; }
-  .scores { gap: 20px; padding: 8px; }
+  .scores-row { gap: 20px; }
   .score-value { font-size: 1.5em; }
   .table { grid-template-columns: 110px 1fr 110px; grid-template-rows: 110px 1fr 165px; gap: 8px; }
   .card .rank { font-size: 1.4em; }
@@ -142,7 +152,8 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 @media (max-width: 600px) {
   :root { --card-w: 66px; --card-h: 99px; --card-back-w: 42px; --card-back-h: 62px; --trick-offset: 52px; --hand-overlap: -40px; }
   #app { padding: 6px; gap: 5px; max-width: 100vw; }
-  .scores { gap: 12px; padding: 6px; border-radius: 8px; }
+  .scores-row { gap: 12px; }
+  .scores { padding: 6px; border-radius: 8px; }
   .score-team { font-size: 0.65em; letter-spacing: 0.5px; }
   .score-value { font-size: 1.3em; }
   .table { grid-template-columns: 58px 1fr 58px; grid-template-rows: 95px 1fr 145px; gap: 4px; }
@@ -152,7 +163,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .seat-west .card-back, .seat-east .card-back { margin-top: -40px; }
   .card .rank { font-size: 1.2em; }
   .card .suit { font-size: 1.6em; margin-top: 2px; }
-  .card .trump-badge { width: 10px; height: 10px; }
   .trick-area { min-height: 180px; }
   .trick-card-owner { font-size: 0.6em; }
   .actions { padding: 8px; gap: 6px; min-height: 60px; }
@@ -165,6 +175,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .overlay-content h2 { font-size: 1.35em; margin-bottom: 12px; }
   .overlay-content .detail { font-size: 0.9em; }
   .outcome-badge { font-size: 1.1em; }
+  .progress-labels { font-size: 0.7em; }
 }
 
 @media (max-width: 380px) {
@@ -173,7 +184,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .seat-west .card-back, .seat-east .card-back { margin-top: -36px; }
   .btn { padding: 8px 10px; font-size: 0.75em; }
   .btn-bid { min-width: 46px; font-size: 0.85em; }
-  .scores { gap: 8px; }
   .score-value { font-size: 1.15em; }
 }
 
@@ -212,11 +222,16 @@ const TEAM = [0, 1, 0, 1];
 const TEAM_NAMES = ['Vous + Nord', 'Est + Ouest'];
 const PARTNER = [2, 3, 0, 1];
 const NEXT_PLAYER = [3, 0, 1, 2];
-const TARGET = 500;
+
+// Objectif en points RÉELS : 1200 (affiché 120)
+const TARGET_REAL = 1200;
+const TARGET_DISPLAY = 120;
 
 const BID_ORDER = ['♣', '♦', '♥', '♠', 'none', 'all'];
 const BID_LABELS = { '♣': '♣ Trèfle', '♦': '♦ Carreau', '♥': '♥ Cœur', '♠': '♠ Pique', 'none': 'Sans atout', 'all': 'Tout atout' };
+// Litige = SEUIL DE DEDANS (81, 65, 129). Le preneur doit faire STRICTEMENT PLUS pour gagner (82, 66, 130).
 const LITIGE = { '♣': 81, '♦': 81, '♥': 81, '♠': 81, 'none': 65, 'all': 129 };
+const REQUIRED = { '♣': 82, '♦': 82, '♥': 82, '♠': 82, 'none': 66, 'all': 130 };
 
 // ==================== HELPERS ====================
 function createDeck() {
@@ -488,7 +503,7 @@ function startRound() {
   else showMessage('À vous d\'ouvrir les enchères');
 }
 
-// ==================== AI BID (avec analyse structurelle) ====================
+// ==================== AI BID ====================
 function aiBid(playerIdx) {
   const hand = S.hands[playerIdx];
   const bid = S.currentBid;
@@ -497,7 +512,6 @@ function aiBid(playerIdx) {
     const trumps = hand.filter(c => c.suit === color);
     let score = 0;
     let hasJ = false, has9 = false;
-
     for (const c of trumps) {
       if (c.rank === 'J')      { score += 10; hasJ = true; }
       else if (c.rank === '9') { score += 8;  has9 = true; }
@@ -516,7 +530,6 @@ function aiBid(playerIdx) {
     else if (trumps.length === 1) score -= 5;
     else if (trumps.length === 2) score -= 2;
     else if (trumps.length >= 4)  score += 2;
-
     return { score, trumps: trumps.length, hasJ, has9 };
   }
 
@@ -549,7 +562,6 @@ function aiBid(playerIdx) {
   evals['none'] = evalNone();
   evals['all']  = evalAll();
 
-  // 1) PREMIER ENCHÉRISSEUR
   if (!bid) {
     let bestMode = '♣';
     let bestScore = -Infinity;
@@ -572,7 +584,6 @@ function aiBid(playerIdx) {
   const sameTeam = TEAM[playerIdx] === TEAM[bid.player];
   const myEval = evals[bid.suit];
 
-  // 2) CONTRER
   if (canCounter(playerIdx)) {
     let worthCounter = false;
     if (bid.suit === 'none') {
@@ -590,7 +601,6 @@ function aiBid(playerIdx) {
     if (worthCounter && Math.random() < 0.55) { doCounter(playerIdx); return; }
   }
 
-  // 3) SURCONTRER
   if (canSurcounter(playerIdx)) {
     let worthSurcounter = false;
     if (bid.suit === 'none') {
@@ -606,7 +616,6 @@ function aiBid(playerIdx) {
     if (worthSurcounter && Math.random() < 0.5) { doSurcounter(playerIdx); return; }
   }
 
-  // 4) MONTER
   if (!sameTeam) {
     const higher = higherBids();
     let bestRaise = null, bestRaiseScore = 0;
@@ -629,7 +638,6 @@ function aiBid(playerIdx) {
     }
   }
 
-  // 5) PASSER
   doPass(playerIdx);
 }
 
@@ -655,14 +663,15 @@ function playCard(playerIdx, card) {
   if (S.trick.length === 4) {
     S.trickResolved = true;
     render();
-    setTimeout(resolveTrick, 1500);
+    // Sweep démarre rapidement pour fusionner avec l'arrivée
+    setTimeout(resolveTrick, 200);
     return;
   }
   render();
   if (S.currentPlayer !== 0) scheduleAI();
 }
 
-// ==================== ANIMATION VERS LE GAGNANT ====================
+// ==================== ANIMATION FUSIONNÉE : arrivée + sweep ====================
 function animateTrickToWinner(winnerPlayer) {
   const wraps = document.querySelectorAll('.trick-card-wrap');
   if (!wraps.length) return;
@@ -678,7 +687,7 @@ function animateTrickToWinner(winnerPlayer) {
     const dx = tcx - (r.left + r.width / 2);
     const dy = tcy - (r.top + r.height / 2);
 
-    wrap.style.transition = 'translate 0.9s cubic-bezier(0.22, 1, 0.36, 1), scale 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
+    wrap.style.transition = 'translate 0.7s cubic-bezier(0.22, 1, 0.36, 1), scale 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s';
 
     if (wrap === target) {
       wrap.style.translate = '0 0';
@@ -693,17 +702,14 @@ function animateTrickToWinner(winnerPlayer) {
   });
 }
 
-// ==================== RESOLVE TRICK (avec animation) ====================
+// ==================== RESOLVE TRICK ====================
 function resolveTrick() {
   if (S.animating) return;
   S.animating = true;
 
   const winner = findWinner(S.trick, S.trump);
-
-  // 🎬 Lancer l'animation de balayage vers le gagnant
   animateTrickToWinner(winner);
 
-  // Attendre 1 seconde (durée de l'animation) puis résoudre
   setTimeout(() => {
     const pts = S.trick.reduce((sum, t) => sum + cardPoints(t.card, S.trump), 0);
     S.tricksWon[winner].push({ cards: [...S.trick], points: pts });
@@ -722,7 +728,7 @@ function resolveTrick() {
     S.currentPlayer = winner;
     render();
     if (S.currentPlayer !== 0) scheduleAI();
-  }, 1000);
+  }, 700);
 }
 
 // ==================== AI PLAY ====================
@@ -772,7 +778,25 @@ function scheduleAI() {
   }, 800);
 }
 
-// ==================== SCORING ====================
+// ==================== SCORE EN TEMPS RÉEL ====================
+function getCurrentPoints() {
+  if (S.takerTeam === null) return { bidder: 0, opp: 0, bidderTricks: 0, oppTricks: 0 };
+  let bidder = 0, opp = 0, bidderTricks = 0, oppTricks = 0;
+  for (let p = 0; p < 4; p++) {
+    const team = TEAM[p];
+    const pts = S.tricksWon[p].reduce((s, t) => s + t.points, 0);
+    if (team === S.takerTeam) { bidder += pts; bidderTricks += S.tricksWon[p].length; }
+    else { opp += pts; oppTricks += S.tricksWon[p].length; }
+  }
+  // Belote-Rebelote en temps réel
+  if (S.belote.K && S.belote.Q && S.belote.K_team === S.belote.Q_team && S.belote.K_team !== null) {
+    if (S.belote.K_team === S.takerTeam) bidder += 20;
+    else opp += 20;
+  }
+  return { bidder, opp, bidderTricks, oppTricks };
+}
+
+// ==================== SCORING FINAL ====================
 function endRound() {
   S.phase = 'scoring';
 
@@ -795,6 +819,7 @@ function endRound() {
   const litige = LITIGE[S.trump];
   let outcome = 'normal';
 
+  // CAPOT
   if (tricksCount[0] === 8 || tricksCount[1] === 8) {
     const capotTeam = tricksCount[0] === 8 ? 0 : 1;
     finalPoints[capotTeam] = 252 * mult;
@@ -803,6 +828,7 @@ function endRound() {
     S.roundWinner = capotTeam;
 
     if (capotTeam !== takerTeam) {
+      // Dedans capot : game over immédiat
       S.gameOver = true;
       S.roundOutcome = 'dedans_capot';
       S.roundPoints = finalPoints;
@@ -813,11 +839,13 @@ function endRound() {
       return;
     }
   }
-  else if (pts[takerTeam] >= litige) {
+  // CONTRAT RÉUSSI (strictement plus que le litige : 82 / 66 / 130)
+  else if (pts[takerTeam] > litige) {
     finalPoints[0] = pts[0] * mult;
     finalPoints[1] = pts[1] * mult;
     S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
   }
+  // DEDANS (preneur ≤ litige : ≤81 / ≤65 / ≤129)
   else {
     finalPoints[takerTeam] = 0;
     finalPoints[oppTeam] = 252 * mult;
@@ -828,7 +856,7 @@ function endRound() {
   S.teamScores[0] += finalPoints[0];
   S.teamScores[1] += finalPoints[1];
 
-  if (S.teamScores[0] >= TARGET || S.teamScores[1] >= TARGET) S.gameOver = true;
+  if (S.teamScores[0] >= TARGET_REAL || S.teamScores[1] >= TARGET_REAL) S.gameOver = true;
   S.roundPoints = finalPoints;
   S.roundOutcome = outcome;
   S.roundOver = true;
@@ -856,17 +884,50 @@ function render() {
 }
 
 function renderScores() {
-  const w0 = S.teamScores[0] >= TARGET, w1 = S.teamScores[1] >= TARGET;
+  const w0 = S.teamScores[0] >= TARGET_REAL, w1 = S.teamScores[1] >= TARGET_REAL;
+  const d0 = Math.round(S.teamScores[0] / 10);
+  const d1 = Math.round(S.teamScores[1] / 10);
+
+  let progressHTML = '';
+  if ((S.phase === 'playing' || S.phase === 'scoring') && S.takerTeam !== null) {
+    const { bidder } = getCurrentPoints();
+    const required = REQUIRED[S.trump];
+    const maxRange = required + 50;
+    const pct = Math.min(100, (bidder / maxRange) * 100);
+    const markerPct = (required / maxRange) * 100;
+    const success = bidder >= required;
+    const colorClass = success ? 'success' : '';
+    progressHTML = `
+      <div class="progress-section">
+        <div class="progress-labels">
+          <span>Preneur <strong>${PLAYER_NAMES[S.taker]}</strong> : <strong style="color:${success ? '#34d399' : '#fbbf24'}">${bidder}</strong> pts</span>
+          <span>Requis : <strong>${required}</strong></span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill ${colorClass}" style="width:${pct}%"></div>
+          <div class="progress-marker" style="left:${markerPct}%"></div>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="scores">
-      <div class="score-item">
-        <div class="score-team">${TEAM_NAMES[0]}</div>
-        <div class="score-value ${w0 ? 'winning' : ''}">${S.teamScores[0]}</div>
+      <div class="scores-row">
+        <div class="score-item">
+          <div class="score-team">${TEAM_NAMES[0]}</div>
+          <div class="score-value ${w0 ? 'winning' : ''}">${d0}</div>
+        </div>
+        <div class="score-item">
+          <div class="score-team">${TEAM_NAMES[1]}</div>
+          <div class="score-value ${w1 ? 'winning' : ''}">${d1}</div>
+        </div>
+        <div class="score-item">
+          <div class="score-team">Objectif</div>
+          <div class="score-value" style="color:var(--gold);font-size:1.3em;">${TARGET_DISPLAY}</div>
+        </div>
       </div>
-      <div class="score-item">
-        <div class="score-team">${TEAM_NAMES[1]}</div>
-        <div class="score-value ${w1 ? 'winning' : ''}">${S.teamScores[1]}</div>
-      </div>
+      ${progressHTML}
     </div>
   `;
 }
@@ -917,9 +978,9 @@ function renderTable() {
   `;
 }
 
+// SANS badgé doré
 function renderCard(card, inHand, trickEntry) {
   const isRed = card.suit === '♥' || card.suit === '♦';
-  const isTrump = S.trump === 'all' || card.suit === S.trump;
   let cls = 'card';
   if (isRed) cls += ' red';
 
@@ -931,11 +992,8 @@ function renderCard(card, inHand, trickEntry) {
     cls += ' disabled';
   }
 
-  const badge = isTrump && S.trump !== 'none' ? '<div class="trump-badge"></div>' : '';
-
   return `
     <div class="${cls}" data-suit="${card.suit}" data-rank="${card.rank}">
-      ${badge}
       <div class="rank">${card.rank}</div>
       <div class="suit">${card.suit}</div>
     </div>
@@ -1008,7 +1066,6 @@ function renderInfo() {
     info += `<strong>Enchère validée</strong>`;
   } else if (S.phase === 'playing') {
     info += `Atout : <strong>${trumpLabel(S.trump)}</strong>`;
-    info += ` • Litige : <strong>${LITIGE[S.trump]} pts</strong>`;
     info += ` • Preneur : <strong>${PLAYER_NAMES[S.taker]}</strong>`;
     if (S.multiplier > 1) info += ` • <strong>×${S.multiplier}</strong>`;
     info += ` • Pli ${Math.min(S.trickNumber, 8)}/8`;
@@ -1021,14 +1078,19 @@ function renderRoundOver() {
   let explanation = '';
   if (S.roundOutcome === 'capot') {
     badge = `<div class="outcome-badge capot">🎯 CAPOT !</div>`;
-    explanation = `<div class="detail" style="color:var(--gold);">${TEAM_NAMES[S.roundWinner]} a remporté les 8 plis → ${252 * S.multiplier} pts</div>`;
+    explanation = `<div class="detail" style="color:var(--gold);">${TEAM_NAMES[S.roundWinner]} a remporté les 8 plis</div>`;
   } else if (S.roundOutcome === 'dedans') {
     badge = `<div class="outcome-badge dedans">❌ DEDANS !</div>`;
-    explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} n'a pas atteint ${LITIGE[S.trump]} pts → ${TEAM_NAMES[S.roundWinner]} marque ${252 * S.multiplier} pts</div>`;
+    explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} n'a pas atteint ${REQUIRED[S.trump]} pts → ${TEAM_NAMES[S.roundWinner]} marque 252 ×${S.multiplier}</div>`;
   } else if (S.roundOutcome === 'dedans_capot') {
     badge = `<div class="outcome-badge dedans">❌ DEDANS CAPOT !</div>`;
     explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} a fait dedans avec capot adverse</div>`;
   }
+
+  const dPts0 = Math.round(S.roundPoints[0] / 10);
+  const dPts1 = Math.round(S.roundPoints[1] / 10);
+  const dTotal0 = Math.round(S.teamScores[0] / 10);
+  const dTotal1 = Math.round(S.teamScores[1] / 10);
 
   return `
     <div class="overlay">
@@ -1036,24 +1098,26 @@ function renderRoundOver() {
         <h2>Fin de la manche</h2>
         ${badge}
         ${explanation}
-        <div class="detail" style="margin-top:12px;">${TEAM_NAMES[0]} : <strong>+${S.roundPoints[0]} pts</strong></div>
-        <div class="detail">${TEAM_NAMES[1]} : <strong>+${S.roundPoints[1]} pts</strong></div>
-        <div class="detail" style="margin-top:12px;">Total : <strong>${S.teamScores[0]} - ${S.teamScores[1]}</strong></div>
+        <div class="detail" style="margin-top:12px;">${TEAM_NAMES[0]} : <strong>+${dPts0} pts</strong></div>
+        <div class="detail">${TEAM_NAMES[1]} : <strong>+${dPts1} pts</strong></div>
+        <div class="detail" style="margin-top:12px;">Total : <strong>${dTotal0} - ${dTotal1}</strong> / ${TARGET_DISPLAY}</div>
         <button class="btn btn-primary" onclick="nextRound()">Continuer</button>
       </div>
     </div>`;
 }
 
 function renderGameOver() {
-  const w = S.teamScores[0] >= TARGET ? 0 : (S.teamScores[1] >= TARGET ? 1 : S.roundWinner);
+  const w = S.teamScores[0] >= TARGET_REAL ? 0 : (S.teamScores[1] >= TARGET_REAL ? 1 : S.roundWinner);
   const isCapotDedans = S.roundOutcome === 'dedans_capot';
+  const d0 = Math.round(S.teamScores[0] / 10);
+  const d1 = Math.round(S.teamScores[1] / 10);
   return `
     <div class="overlay">
       <div class="overlay-content">
         <h2>🏆 Partie terminée</h2>
         ${isCapotDedans ? '<div class="outcome-badge dedans" style="margin-bottom:10px;">DEDANS CAPOT !</div>' : ''}
         <div class="detail" style="font-size:1.3em;color:var(--gold);margin:12px 0;"><strong>${TEAM_NAMES[w]}</strong> gagne !</div>
-        <div class="detail">Score final : ${S.teamScores[0]} - ${S.teamScores[1]}</div>
+        <div class="detail">Score final : ${d0} - ${d1} / ${TARGET_DISPLAY}</div>
         <button class="btn btn-primary" onclick="newGame()">Rejouer</button>
       </div>
     </div>`;
