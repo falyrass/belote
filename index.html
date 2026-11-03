@@ -41,12 +41,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .card-back { width: var(--card-back-w); height: var(--card-back-h); border-radius: 6px; background: linear-gradient(135deg, #1e40af, #1e3a8a); border: 2px solid #3b82f6; box-shadow: 0 2px 6px rgba(0,0,0,0.3); position: relative; flex-shrink: 0; }
 .card-back::before { content: ''; position: absolute; inset: 3px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px; background: repeating-linear-gradient(45deg, transparent, transparent 3px, rgba(255,255,255,0.05) 3px, rgba(255,255,255,0.05) 6px); }
 
-/* Est/Ouest : dos en colonne pour tenir dans les colonnes étroites */
 .seat-west .hand-hidden, .seat-east .hand-hidden { flex-direction: column; gap: 0; }
 .seat-west .card-back, .seat-east .card-back { margin-top: -55px; }
 .seat-west .card-back:first-child, .seat-east .card-back:first-child { margin-top: 0; }
 
-/* Nord : dos en ligne avec chevauchement */
 .seat-north .hand-hidden { gap: 0; }
 .seat-north .card-back { margin-left: -20px; }
 .seat-north .card-back:first-child { margin-left: 0; }
@@ -126,7 +124,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .outcome-badge.capot { color: var(--gold); text-shadow: 0 0 20px rgba(251,191,36,0.6); }
 .outcome-badge.dedans { color: var(--red); text-shadow: 0 0 20px rgba(239,68,68,0.6); }
 
-/* TABLETTES */
 @media (max-width: 900px) {
   :root { --card-w: 80px; --card-h: 120px; --card-back-w: 52px; --card-back-h: 78px; --trick-offset: 70px; --hand-overlap: -32px; }
   #app { padding: 8px; gap: 6px; }
@@ -142,7 +139,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .trick-area { min-height: 230px; }
 }
 
-/* MOBILES */
 @media (max-width: 600px) {
   :root { --card-w: 66px; --card-h: 99px; --card-back-w: 42px; --card-back-h: 62px; --trick-offset: 52px; --hand-overlap: -40px; }
   #app { padding: 6px; gap: 5px; max-width: 100vw; }
@@ -171,7 +167,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .outcome-badge { font-size: 1.1em; }
 }
 
-/* TRÈS PETITS MOBILES */
 @media (max-width: 380px) {
   :root { --card-w: 58px; --card-h: 87px; --card-back-w: 36px; --card-back-h: 54px; --trick-offset: 46px; --hand-overlap: -44px; }
   .table { grid-template-columns: 48px 1fr 48px; grid-template-rows: 85px 1fr 130px; }
@@ -182,7 +177,6 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .score-value { font-size: 1.15em; }
 }
 
-/* PAYSAGE MOBILE */
 @media (max-height: 500px) and (orientation: landscape) {
   :root { --card-w: 56px; --card-h: 84px; --card-back-w: 34px; --card-back-h: 52px; --trick-offset: 44px; --hand-overlap: -30px; }
   #app { padding: 4px; gap: 4px; }
@@ -220,7 +214,6 @@ const PARTNER = [2, 3, 0, 1];
 const NEXT_PLAYER = [3, 0, 1, 2];
 const TARGET = 500;
 
-// Ordre croissant des enchères
 const BID_ORDER = ['♣', '♦', '♥', '♠', 'none', 'all'];
 const BID_LABELS = { '♣': '♣ Trèfle', '♦': '♦ Carreau', '♥': '♥ Cœur', '♠': '♠ Pique', 'none': 'Sans atout', 'all': 'Tout atout' };
 const LITIGE = { '♣': 81, '♦': 81, '♥': 81, '♠': 81, 'none': 65, 'all': 129 };
@@ -250,39 +243,51 @@ function cardPoints(card, trump) {
 }
 function sortHand(hand, trump) {
   let order;
-  if (trump === 'all') order = SUITS;
-  else if (trump === 'none' || !trump) order = SUITS;
+  if (trump === 'all' || trump === 'none' || !trump) order = SUITS;
   else order = [trump, ...SUITS.filter(s => s !== trump)];
   return [...hand].sort((a, b) => {
     if (a.suit !== b.suit) return order.indexOf(a.suit) - order.indexOf(b.suit);
     return cardStrength(a, trump) - cardStrength(b, trump);
   });
 }
+
+// ==================== FIND WINNER (CORRIGÉ) ====================
 function findWinner(trick, trump) {
   if (!trick.length) return null;
   const leadSuit = trick[0].card.suit;
   let w = trick[0];
 
+  // SANS ATOUT : la plus haute carte de la couleur demandée gagne
   if (trump === 'none') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
-      if (c.card.suit === leadSuit && cardStrength(c.card, trump) > cardStrength(w.card, trump)) w = c;
+      if (c.card.suit === leadSuit &&
+          ORDER_NORMAL.indexOf(c.card.rank) > ORDER_NORMAL.indexOf(w.card.rank)) {
+        w = c;
+      }
     }
     return w.player;
   }
 
+  // TOUT ATOUT : SEULE la plus haute carte de la COULEUR DEMANDÉE gagne
+  // (les cartes d'autres couleurs ne peuvent jamais remporter le pli)
   if (trump === 'all') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
-      if (cardStrength(c.card, trump) > cardStrength(w.card, trump)) w = c;
+      if (c.card.suit === leadSuit &&
+          ORDER_TRUMP.indexOf(c.card.rank) > ORDER_TRUMP.indexOf(w.card.rank)) {
+        w = c;
+      }
     }
     return w.player;
   }
 
+  // COULEUR (Pique/Carreau/Coeur/Trèfle) : règles standard Belote
   for (let i = 1; i < trick.length; i++) {
     const c = trick[i];
     if (c.card.suit === w.card.suit) {
-      if (cardStrength(c.card, trump) > cardStrength(w.card, trump)) w = c;
+      const order = c.card.suit === trump ? ORDER_TRUMP : ORDER_NORMAL;
+      if (order.indexOf(c.card.rank) > order.indexOf(w.card.rank)) w = c;
     } else if (c.card.suit === trump && w.card.suit !== trump) {
       w = c;
     }
@@ -290,43 +295,62 @@ function findWinner(trick, trump) {
   return w.player;
 }
 
+// ==================== VALID MOVES (CORRIGÉ) ====================
 function validMoves(hand, trick, trump, playerIdx) {
   if (!trick.length) return [...hand];
   const leadSuit = trick[0].card.suit;
   const sameSuit = hand.filter(c => c.suit === leadSuit);
 
+  // SANS ATOUT : aucune obligation de monter
   if (trump === 'none') {
     return sameSuit.length ? sameSuit : [...hand];
   }
 
+  // TOUT ATOUT : obligation de monter dans la COULEUR DEMANDÉE si possible
   if (trump === 'all') {
-    // Tout atout : suivi de couleur obligatoire, pas de surcoupe
-    return sameSuit.length ? sameSuit : [...hand];
+    if (sameSuit.length) {
+      const leadCards = trick.filter(t => t.card.suit === leadSuit);
+      const highestInTrick = leadCards.reduce((m, t) =>
+        ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+      const higher = sameSuit.filter(c =>
+        ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
+      return higher.length ? higher : sameSuit;
+    }
+    // Pas la couleur demandée → jouer n'importe quoi (ne peut pas gagner)
+    return [...hand];
   }
 
-  // Trump spécifique
+  // COULEUR (Pique/Carreau/Coeur/Trèfle) : règles standard
   const trumps = hand.filter(c => c.suit === trump);
 
   if (sameSuit.length) {
     if (leadSuit === trump) {
+      // L'atout est mené → obligation de surcouper
       const trickTrumps = trick.filter(t => t.card.suit === trump);
-      const highest = trickTrumps.reduce((m, t) => cardStrength(t.card, trump) > cardStrength(m.card, trump) ? t : m);
-      const higher = sameSuit.filter(c => cardStrength(c, trump) > cardStrength(highest.card, trump));
+      const highestInTrick = trickTrumps.reduce((m, t) =>
+        ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+      const higher = sameSuit.filter(c =>
+        ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
       return higher.length ? higher : sameSuit;
     }
+    // Couleur normale menée → pas d'obligation de monter
     return sameSuit;
   }
 
+  // Pas la couleur demandée
   if (!trumps.length) return [...hand];
 
+  // Obligation de couper
   const winner = findWinner(trick, trump);
   if (winner === PARTNER[playerIdx]) return [...hand];
 
   const trickTrumps = trick.filter(t => t.card.suit === trump);
   if (!trickTrumps.length) return trumps;
 
-  const highest = trickTrumps.reduce((m, t) => cardStrength(t.card, trump) > cardStrength(m.card, trump) ? t : m);
-  const overTrumps = trumps.filter(c => cardStrength(c, trump) > cardStrength(highest.card, trump));
+  const highest = trickTrumps.reduce((m, t) =>
+    ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+  const overTrumps = trumps.filter(c =>
+    ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highest.card.rank));
   return overTrumps.length ? overTrumps : trumps;
 }
 
@@ -476,7 +500,6 @@ function startRound() {
   else showMessage('À vous d\'ouvrir les enchères');
 }
 
-// IA enchère
 function aiEvalHand(hand, mode) {
   return hand.reduce((s, c) => s + cardPoints(c, mode), 0);
 }
@@ -494,14 +517,12 @@ function aiBid(playerIdx) {
   const hand = S.hands[playerIdx];
   const bid = S.currentBid;
 
-  // Premier enchérisseur : DOIT choisir
   if (!bid) {
     const best = aiChooseBestMode(hand);
     doBid(playerIdx, best.mode);
     return;
   }
 
-  // Essayer de monter
   const higher = higherBids();
   let bestRaise = null, bestRaiseScore = 0;
   for (const m of higher) {
@@ -510,13 +531,11 @@ function aiBid(playerIdx) {
   }
   if (bestRaise && bestRaiseScore >= 22) { doBid(playerIdx, bestRaise); return; }
 
-  // Essayer de contrer
   if (canCounter(playerIdx)) {
     const defScore = aiEvalHand(hand, bid.suit);
     if (defScore >= 24) { doCounter(playerIdx); return; }
   }
 
-  // Essayer de surcontrer
   if (canSurcounter(playerIdx)) {
     const defScore = aiEvalHand(hand, bid.suit);
     if (defScore >= 30) { doSurcounter(playerIdx); return; }
@@ -583,7 +602,6 @@ function aiChooseCard(playerIdx) {
   const position = S.trick.length;
   const currentW = findWinner(S.trick, S.trump);
   const partnerWins = currentW === PARTNER[playerIdx];
-  const isTrumpMode = S.trump !== 'none';
 
   const sorted = [...valid].sort((a, b) => cardStrength(a, S.trump) - cardStrength(b, S.trump));
   const nonTrumps = S.trump === 'all' ? [] : sorted.filter(c => c.suit !== S.trump);
@@ -642,43 +660,42 @@ function endRound() {
   const litige = LITIGE[S.trump];
   let outcome = 'normal';
 
-  // === CAPOT ===
+  // CAPOT
   if (tricksCount[0] === 8 || tricksCount[1] === 8) {
     const capotTeam = tricksCount[0] === 8 ? 0 : 1;
     finalPoints[capotTeam] = 252 * mult;
     finalPoints[1 - capotTeam] = 0;
     outcome = 'capot';
     S.roundWinner = capotTeam;
-    S.teamScores[0] += finalPoints[0];
-    S.teamScores[1] += finalPoints[1];
 
-    // DEDANS CAPOT : le preneur a fait dedans ET l'adversaire a capot → victoire immédiate
     if (capotTeam !== takerTeam) {
+      // Dedans capot : défaite immédiate du preneur
       S.gameOver = true;
       S.roundOutcome = 'dedans_capot';
       S.roundPoints = finalPoints;
+      S.teamScores[0] += finalPoints[0];
+      S.teamScores[1] += finalPoints[1];
       S.roundOver = true;
       render();
       return;
     }
   }
-  // === CONTRAT RÉUSSI ===
+  // CONTRAT RÉUSSI
   else if (pts[takerTeam] >= litige) {
     finalPoints[0] = pts[0] * mult;
     finalPoints[1] = pts[1] * mult;
     S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
-    S.teamScores[0] += finalPoints[0];
-    S.teamScores[1] += finalPoints[1];
   }
-  // === DEDANS ===
+  // DEDANS
   else {
     finalPoints[takerTeam] = 0;
     finalPoints[oppTeam] = 252 * mult;
     outcome = 'dedans';
     S.roundWinner = oppTeam;
-    S.teamScores[0] += finalPoints[0];
-    S.teamScores[1] += finalPoints[1];
   }
+
+  S.teamScores[0] += finalPoints[0];
+  S.teamScores[1] += finalPoints[1];
 
   if (S.teamScores[0] >= TARGET || S.teamScores[1] >= TARGET) S.gameOver = true;
   S.roundPoints = finalPoints;
@@ -814,13 +831,11 @@ function renderBiddingActions() {
   const higher = higherBids();
   const buttons = [];
 
-  // Bids (suit colors get red styling)
   for (const m of higher) {
     const isRed = m === '♥' || m === '♦';
     buttons.push(`<button class="btn btn-bid ${isRed ? 'red' : ''}" onclick="handleBidClick('${m}')">${BID_LABELS[m]}</button>`);
   }
 
-  // Counter / Surcounter
   if (canCounter(0)) {
     buttons.push(`<button class="btn btn-counter" onclick="handleCounterClick()">Contrer ×2</button>`);
   }
@@ -828,7 +843,6 @@ function renderBiddingActions() {
     buttons.push(`<button class="btn btn-surcounter" onclick="handleSurcounterClick()">Surcontrer ×4</button>`);
   }
 
-  // Pass (only if a bid exists)
   if (bid) {
     buttons.push(`<button class="btn" onclick="handlePassClick()">Passer</button>`);
   }
@@ -919,28 +933,23 @@ function attachHandlers() {
   }
 }
 
-// ==================== UI HANDLERS ====================
 function handleBidClick(mode) {
   if (S.phase !== 'bidding' || S.currentPlayer !== 0) return;
   doBid(0, mode);
 }
-
 function handlePassClick() {
   if (S.phase !== 'bidding' || S.currentPlayer !== 0) return;
   doPass(0);
 }
-
 function handleCounterClick() {
   if (S.phase !== 'bidding' || S.currentPlayer !== 0) return;
   doCounter(0);
 }
-
 function handleSurcounterClick() {
   if (S.phase !== 'bidding' || S.currentPlayer !== 0) return;
   doSurcounter(0);
 }
 
-// ==================== UTILS ====================
 function showMessage(text) {
   document.querySelectorAll('.message').forEach(m => m.remove());
   const msg = document.createElement('div');
@@ -960,7 +969,6 @@ function showBidToast(text) {
   setTimeout(() => toast.remove(), 2200);
 }
 
-// ==================== START ====================
 newGame();
 </script>
 </body>
