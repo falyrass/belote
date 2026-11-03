@@ -732,6 +732,42 @@ function playCard(playerIdx, card) {
   if (S.currentPlayer !== 0) scheduleAI();
 }
 
+function animateTrickToWinner(winnerPlayer) {
+  // Récupère les 4 wrappers du pli actuel
+  const wraps = document.querySelectorAll('.trick-card-wrap');
+  if (!wraps.length) return;
+
+  // Cible : position du gagnant (déjà définie par data-player dans le CSS)
+  const target = document.querySelector(`.trick-card-wrap[data-player="${winnerPlayer}"]`);
+  if (!target) return;
+
+  const targetRect = target.getBoundingClientRect();
+  const targetCenterX = targetRect.left + targetRect.width / 2;
+  const targetCenterY = targetRect.top + targetRect.height / 2;
+
+  wraps.forEach(wrap => {
+    const rect = wrap.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = targetCenterX - cx;
+    const dy = targetCenterY - cy;
+
+    // Le gagnant reste sur place (léger pulse), les autres glissent vers lui
+    if (wrap === target) {
+      wrap.style.transition = 'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
+      wrap.style.transform = `translate(-50%, -50%) scale(1.15)`;
+      wrap.style.zIndex = '30';
+    } else {
+      wrap.style.transition = 'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.9s';
+      // translate de base déjà appliqué par le CSS → on ajoute dx/dy par-dessus
+      const currentTransform = getComputedStyle(wrap).transform;
+      wrap.style.transform = `${currentTransform} translate(${dx}px, ${dy}px) scale(0.6)`;
+      wrap.style.opacity = '0.2';
+      wrap.style.zIndex = '25';
+    }
+  });
+}
+
 function resolveTrick() {
   const winner = findWinner(S.trick, S.trump);
   const pts = S.trick.reduce((sum, t) => sum + cardPoints(t.card, S.trump), 0);
