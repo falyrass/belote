@@ -22,18 +22,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 #app { max-width: 1400px; margin: 0 auto; padding: 10px; height: 100vh; height: 100dvh; display: flex; flex-direction: column; gap: 8px; }
 
 .scores { display: flex; flex-direction: column; gap: 8px; padding: 10px; background: var(--bg-2); border-radius: 12px; }
-.scores-row { display: flex; justify-content: center; gap: 30px; }
+.scores-row { display: flex; justify-content: center; gap: 40px; }
 .score-team { font-size: 0.75em; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
 .score-value { font-size: 1.8em; font-weight: 700; color: var(--accent-2); text-align: center; line-height: 1.1; }
 .score-value.winning { color: var(--gold); text-shadow: 0 0 20px rgba(251,191,36,0.5); }
-
-.progress-section { display: flex; flex-direction: column; gap: 4px; }
-.progress-labels { display: flex; justify-content: space-between; font-size: 0.75em; color: var(--text-2); padding: 0 4px; }
-.progress-labels strong { color: var(--text); }
-.progress-bar { position: relative; height: 12px; background: #0f172a; border-radius: 6px; overflow: hidden; border: 1px solid #334155; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 0.3s; border-radius: 6px; }
-.progress-fill.success { background: linear-gradient(90deg, #10b981, #34d399); }
-.progress-marker { position: absolute; top: -2px; bottom: -2px; width: 3px; background: var(--gold); box-shadow: 0 0 8px var(--gold); }
 
 .table { flex: 1; display: grid; grid-template-columns: 160px 1fr 160px; grid-template-rows: 130px 1fr 190px; gap: 10px; min-height: 0; }
 .seat { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 0; }
@@ -93,50 +85,13 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .card.playable:active { transform: translateY(-6px) scale(0.98); }
 .card.disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* Coins avec valeur + couleur */
-.card-corner {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 0.85;
-  pointer-events: none;
-}
-.card-corner-tl {
-  top: 5px;
-  left: 5px;
-}
-.card-corner-br {
-  bottom: 5px;
-  right: 5px;
-  transform: rotate(180deg);
-}
-.corner-rank {
-  font-size: 1.05em;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-.corner-suit {
-  font-size: 0.9em;
-  line-height: 1;
-  margin-top: 1px;
-}
+.card-corner { position: absolute; display: flex; flex-direction: column; align-items: center; line-height: 0.85; pointer-events: none; }
+.card-corner-tl { top: 5px; left: 6px; }
+.card-corner-br { bottom: 5px; right: 6px; transform: rotate(180deg); }
+.corner-rank { font-size: 22px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.corner-suit { font-size: 18px; line-height: 1; margin-top: 2px; }
+.card-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; line-height: 1; opacity: 0.55; font-weight: 400; pointer-events: none; }
 
-/* Symbole central subtil */
-.card-center {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 2.4em;
-  line-height: 1;
-  opacity: 0.55;
-  font-weight: 400;
-  pointer-events: none;
-}
-
-/* ==================== TRICK AREA ==================== */
 .trick-area { grid-column: 2; grid-row: 2; position: relative; min-height: 260px; min-width: 0; }
 .trick-cards { position: absolute; inset: 0; }
 .trick-card-wrap { position: absolute; top: 50%; left: 50%; transition: box-shadow 0.3s; }
@@ -148,7 +103,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .trick-card-anim { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .trick-card-wrap[data-player="0"] .trick-card-anim { flex-direction: column-reverse; }
 .trick-card-owner { font-size: 0.75em; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
-.trick-card-wrap.winner .card { box-shadow: 0 0 20px var(--gold), 0 0 0 3px var(--gold) inset; }
+.trick-card-wrap.winner .card { box-shadow: 0 0 24px var(--gold), 0 0 0 3px var(--gold) inset; }
 .trick-card-wrap.winner .trick-card-owner { color: var(--gold); font-weight: 700; }
 
 .trick-card-wrap.just-played[data-player="0"] .trick-card-anim { animation: slideFromBottom 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -184,6 +139,30 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .message { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: var(--bg-3); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: slideDown 0.3s; z-index: 1000; font-weight: 600; font-size: 0.9em; max-width: 90vw; text-align: center; }
 @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+/* Toast d'action d'enchère (petit, 1s) */
+.bid-action-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 20px;
+  z-index: 1500;
+  font-weight: 600;
+  font-size: 0.85em;
+  color: var(--text);
+  pointer-events: none;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  animation: bidActionPop 0.15s ease-out;
+}
+@keyframes bidActionPop {
+  from { opacity: 0; transform: translate(-50%, -10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Gros toast central (enchère validée) */
 .bid-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 24px 40px; background: linear-gradient(135deg, #1e293b, #334155); border: 3px solid var(--gold); border-radius: 18px; box-shadow: 0 0 40px rgba(251,191,36,0.5), 0 10px 40px rgba(0,0,0,0.7); z-index: 2000; font-weight: 800; font-size: 1.4em; color: var(--text); text-align: center; letter-spacing: 0.3px; animation: bidToastPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; max-width: 85vw; }
 @keyframes bidToastPop { from { opacity: 0; transform: translate(-50%, -50%) scale(0.5); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 .bid-toast.fade-out { animation: bidToastFade 0.4s ease-out forwards; }
@@ -201,14 +180,14 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 
 /* ==================== TABLETTES ==================== */
 @media (max-width: 900px) {
-  :root { --card-w: 80px; --card-h: 120px; --card-back-w: 52px; --card-back-h: 78px; --trick-offset: 70px; --hand-overlap: -28px; }
+  :root { --card-w: 80px; --card-h: 120px; --card-back-w: 52px; --card-back-h: 78px; --trick-offset: 70px; --hand-overlap: -26px; }
   #app { padding: 8px; gap: 6px; }
   .scores-row { gap: 20px; }
   .score-value { font-size: 1.5em; }
-  .table { grid-template-columns: 110px 1fr 110px; grid-template-rows: 110px 1fr 165px; gap: 8px; }
-  .card .corner-rank { font-size: 0.95em; }
-  .card .corner-suit { font-size: 0.8em; }
-  .card .card-center { font-size: 2em; }
+  .table { grid-template-columns: 100px 1fr 100px; grid-template-rows: 110px 1fr 165px; gap: 8px; }
+  .corner-rank { font-size: 18px; }
+  .corner-suit { font-size: 15px; }
+  .card-center { font-size: 34px; }
   .seat-west .card-back, .seat-east .card-back { margin-top: -46px; }
   .seat-north .card-back { margin-left: -18px; }
   .btn { padding: 9px 16px; font-size: 0.9em; }
@@ -219,95 +198,90 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 /* ==================== MOBILES ==================== */
 @media (max-width: 600px) {
   :root {
-    --card-w: 60px; --card-h: 90px;
-    --card-back-w: 42px; --card-back-h: 62px;
-    --trick-offset: 52px;
-    --hand-overlap: -22px;
+    --card-w: 46px; --card-h: 69px;
+    --card-back-w: 34px; --card-back-h: 51px;
+    --trick-offset: 46px;
+    --hand-overlap: -10px;
   }
   #app { padding: 6px; gap: 5px; max-width: 100vw; }
-  .scores-row { gap: 12px; }
+  .scores-row { gap: 16px; }
   .scores { padding: 6px; border-radius: 8px; }
   .score-team { font-size: 0.65em; letter-spacing: 0.5px; }
   .score-value { font-size: 1.3em; }
-  .table { grid-template-columns: 58px 1fr 58px; grid-template-rows: 95px 1fr 145px; gap: 4px; }
-  .seat-name { font-size: 0.65em; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .table { grid-template-columns: 42px 1fr 42px; grid-template-rows: 85px 1fr 135px; gap: 4px; }
+  .seat-name { font-size: 0.6em; letter-spacing: 0.5px; margin-bottom: 3px; }
   .seat-name.active { animation: none; }
-  .seat-north .card-back { margin-left: -20px; }
-  .seat-west .card-back, .seat-east .card-back { margin-top: -40px; }
+  .seat-north .card-back { margin-left: -16px; }
+  .seat-west .card-back, .seat-east .card-back { margin-top: -34px; }
 
-  /* Main : 75% de la largeur, centrée */
+  /* Main : plus large, cartes plus espacées */
   .hand-visible {
-    width: 75%;
+    width: 100%;
     margin: 0 auto;
     padding: 4px 0;
     min-height: calc(var(--card-h) + 8px);
     overflow: visible;
   }
-  .hand-visible .card {
-    flex-shrink: 1;
-    min-width: 0;
-  }
 
-  .card-corner-tl { top: 3px; left: 3px; }
-  .card-corner-br { bottom: 3px; right: 3px; }
-  .corner-rank { font-size: 0.85em; }
-  .corner-suit { font-size: 0.7em; }
-  .card-center { font-size: 1.5em; }
+  .card-corner-tl { top: 3px; left: 4px; }
+  .card-corner-br { bottom: 3px; right: 4px; }
+  .corner-rank { font-size: 13px; }
+  .corner-suit { font-size: 11px; }
+  .card-center { font-size: 22px; }
 
-  .trick-area { min-height: 180px; }
-  .trick-card-owner { font-size: 0.6em; }
+  .trick-area { min-height: 160px; }
+  .trick-card-owner { font-size: 0.55em; }
   .actions { padding: 8px; gap: 6px; min-height: 60px; }
   .btn { padding: 10px 12px; font-size: 0.82em; min-height: 42px; border-radius: 8px; }
   .btn-bid { min-width: 54px; font-size: 0.95em; }
-  .info-bar { font-size: 0.75em; padding: 6px 10px; }
+  .info-bar { font-size: 0.72em; padding: 6px 10px; }
   .message { font-size: 0.8em; padding: 8px 14px; top: 10px; }
-  .bid-toast { font-size: 1.1em; padding: 18px 25px; border-width: 2px; }
+  .bid-action-toast { top: 60px; font-size: 0.78em; padding: 6px 16px; }
+  .bid-toast { font-size: 1em; padding: 16px 22px; border-width: 2px; }
   .overlay-content { padding: 24px 18px; }
   .overlay-content h2 { font-size: 1.35em; margin-bottom: 12px; }
   .overlay-content .detail { font-size: 0.9em; }
   .outcome-badge { font-size: 1.1em; }
-  .progress-labels { font-size: 0.7em; }
 }
 
 /* ==================== TRÈS PETITS MOBILES ==================== */
 @media (max-width: 380px) {
   :root {
-    --card-w: 52px; --card-h: 78px;
-    --card-back-w: 36px; --card-back-h: 54px;
-    --trick-offset: 46px;
-    --hand-overlap: -18px;
+    --card-w: 40px; --card-h: 60px;
+    --card-back-w: 28px; --card-back-h: 42px;
+    --trick-offset: 38px;
+    --hand-overlap: -6px;
   }
-  .table { grid-template-columns: 48px 1fr 48px; grid-template-rows: 85px 1fr 130px; }
-  .seat-west .card-back, .seat-east .card-back { margin-top: -36px; }
+  .table { grid-template-columns: 36px 1fr 36px; grid-template-rows: 78px 1fr 125px; }
+  .seat-west .card-back, .seat-east .card-back { margin-top: -28px; }
   .btn { padding: 8px 10px; font-size: 0.75em; }
   .btn-bid { min-width: 46px; font-size: 0.85em; }
   .score-value { font-size: 1.15em; }
-  .corner-rank { font-size: 0.75em; }
-  .corner-suit { font-size: 0.65em; }
-  .card-center { font-size: 1.3em; }
+  .corner-rank { font-size: 12px; }
+  .corner-suit { font-size: 10px; }
+  .card-center { font-size: 20px; }
 }
 
 /* ==================== PAYSAGE MOBILE ==================== */
 @media (max-height: 500px) and (orientation: landscape) {
   :root {
-    --card-w: 56px; --card-h: 84px;
-    --card-back-w: 34px; --card-back-h: 52px;
-    --trick-offset: 44px;
-    --hand-overlap: -24px;
+    --card-w: 52px; --card-h: 78px;
+    --card-back-w: 32px; --card-back-h: 48px;
+    --trick-offset: 40px;
+    --hand-overlap: -12px;
   }
   #app { padding: 4px; gap: 4px; }
   .scores { padding: 4px; }
   .score-value { font-size: 1.1em; }
-  .table { grid-template-columns: 90px 1fr 90px; grid-template-rows: 65px 1fr 115px; gap: 4px; }
+  .table { grid-template-columns: 80px 1fr 80px; grid-template-rows: 65px 1fr 115px; gap: 4px; }
   .seat-name { font-size: 0.6em; margin-bottom: 2px; }
   .actions { padding: 4px; min-height: 44px; }
   .btn { padding: 6px 10px; font-size: 0.75em; min-height: 36px; }
   .info-bar { padding: 4px 8px; font-size: 0.7em; }
-  .trick-area { min-height: 130px; }
-  .hand-visible { width: 75%; margin: 0 auto; }
-  .corner-rank { font-size: 0.8em; }
-  .corner-suit { font-size: 0.7em; }
-  .card-center { font-size: 1.4em; }
+  .trick-area { min-height: 120px; }
+  .corner-rank { font-size: 14px; }
+  .corner-suit { font-size: 12px; }
+  .card-center { font-size: 24px; }
 }
 
 @media (hover: none) {
@@ -339,7 +313,8 @@ const TARGET_DISPLAY = 120;
 const BID_ORDER = ['♣', '♦', '♥', '♠', 'none', 'all'];
 const BID_LABELS = { '♣': '♣ Trèfle', '♦': '♦ Carreau', '♥': '♥ Cœur', '♠': '♠ Pique', 'none': 'Sans atout', 'all': 'Tout atout' };
 const LITIGE = { '♣': 81, '♦': 81, '♥': 81, '♠': 81, 'none': 65, 'all': 129 };
-const REQUIRED = { '♣': 82, '♦': 82, '♥': 82, '♠': 82, 'none': 66, 'all': 130 };
+const CAPOT_BASE = 252;
+const CAPOT_BONUS = 150;
 
 // ==================== HELPERS ====================
 function createDeck() {
@@ -383,25 +358,17 @@ function findWinner(trick, trump) {
   if (trump === 'none') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
-      if (c.card.suit === leadSuit &&
-          ORDER_NORMAL.indexOf(c.card.rank) > ORDER_NORMAL.indexOf(w.card.rank)) {
-        w = c;
-      }
+      if (c.card.suit === leadSuit && ORDER_NORMAL.indexOf(c.card.rank) > ORDER_NORMAL.indexOf(w.card.rank)) w = c;
     }
     return w.player;
   }
-
   if (trump === 'all') {
     for (let i = 1; i < trick.length; i++) {
       const c = trick[i];
-      if (c.card.suit === leadSuit &&
-          ORDER_TRUMP.indexOf(c.card.rank) > ORDER_TRUMP.indexOf(w.card.rank)) {
-        w = c;
-      }
+      if (c.card.suit === leadSuit && ORDER_TRUMP.indexOf(c.card.rank) > ORDER_TRUMP.indexOf(w.card.rank)) w = c;
     }
     return w.player;
   }
-
   for (let i = 1; i < trick.length; i++) {
     const c = trick[i];
     if (c.card.suit === w.card.suit) {
@@ -420,36 +387,28 @@ function validMoves(hand, trick, trump, playerIdx) {
   const leadSuit = trick[0].card.suit;
   const sameSuit = hand.filter(c => c.suit === leadSuit);
 
-  if (trump === 'none') {
-    return sameSuit.length ? sameSuit : [...hand];
-  }
+  if (trump === 'none') return sameSuit.length ? sameSuit : [...hand];
 
   if (trump === 'all') {
     if (sameSuit.length) {
       const leadCards = trick.filter(t => t.card.suit === leadSuit);
-      const highestInTrick = leadCards.reduce((m, t) =>
-        ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
-      const higher = sameSuit.filter(c =>
-        ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
+      const highestInTrick = leadCards.reduce((m, t) => ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+      const higher = sameSuit.filter(c => ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
       return higher.length ? higher : sameSuit;
     }
     return [...hand];
   }
 
   const trumps = hand.filter(c => c.suit === trump);
-
   if (sameSuit.length) {
     if (leadSuit === trump) {
       const trickTrumps = trick.filter(t => t.card.suit === trump);
-      const highestInTrick = trickTrumps.reduce((m, t) =>
-        ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
-      const higher = sameSuit.filter(c =>
-        ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
+      const highestInTrick = trickTrumps.reduce((m, t) => ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+      const higher = sameSuit.filter(c => ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highestInTrick.card.rank));
       return higher.length ? higher : sameSuit;
     }
     return sameSuit;
   }
-
   if (!trumps.length) return [...hand];
 
   const winner = findWinner(trick, trump);
@@ -457,11 +416,8 @@ function validMoves(hand, trick, trump, playerIdx) {
 
   const trickTrumps = trick.filter(t => t.card.suit === trump);
   if (!trickTrumps.length) return trumps;
-
-  const highest = trickTrumps.reduce((m, t) =>
-    ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
-  const overTrumps = trumps.filter(c =>
-    ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highest.card.rank));
+  const highest = trickTrumps.reduce((m, t) => ORDER_TRUMP.indexOf(t.card.rank) > ORDER_TRUMP.indexOf(m.card.rank) ? t : m);
+  const overTrumps = trumps.filter(c => ORDER_TRUMP.indexOf(c.rank) > ORDER_TRUMP.indexOf(highest.card.rank));
   return overTrumps.length ? overTrumps : trumps;
 }
 
@@ -477,7 +433,7 @@ function resetState() {
   S = {
     hands: [[], [], [], []],
     reserveDeck: [],
-    trump: null, taker: null, takerTeam: null, currentPlayer: 0,
+    trump: null, taker: null, takerTeam: null, firstBidder: null, currentPlayer: 0,
     trick: [], trickNumber: 0,
     teamScores: [0, 0],
     phase: 'bidding',
@@ -500,7 +456,6 @@ function canCounter(playerIdx) {
   if (TEAM[playerIdx] === TEAM[bid.player]) return false;
   return true;
 }
-
 function canSurcounter(playerIdx) {
   const bid = S.currentBid;
   if (!bid) return false;
@@ -509,8 +464,16 @@ function canSurcounter(playerIdx) {
   if (TEAM[playerIdx] === TEAM[bid.counterBy]) return false;
   return true;
 }
+function isContred() {
+  return S.currentBid && S.currentBid.counterBy !== null && S.currentBid.counterBy !== undefined;
+}
+function isSurcontred() {
+  return S.currentBid && S.currentBid.surcounterBy !== null && S.currentBid.surcounterBy !== undefined;
+}
 
 function higherBids() {
+  // Si contré : aucune montée possible
+  if (isContred()) return [];
   if (!S.currentBid) return [...BID_ORDER];
   const idx = BID_ORDER.indexOf(S.currentBid.suit);
   return BID_ORDER.slice(idx + 1);
@@ -519,6 +482,8 @@ function higherBids() {
 function doBid(playerIdx, suit) {
   S.currentBid = { suit, player: playerIdx, counterBy: null, surcounterBy: null };
   S.bidPassCount = 0;
+  if (S.firstBidder === null || S.firstBidder === undefined) S.firstBidder = playerIdx;
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → ${BID_LABELS[suit]}`);
   nextBidder();
 }
 
@@ -526,22 +491,32 @@ function doCounter(playerIdx) {
   S.currentBid.counterBy = playerIdx;
   S.currentBid.surcounterBy = null;
   S.bidPassCount = 0;
-  showMessage(`${PLAYER_NAMES[playerIdx]} contre (×2) !`);
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Contre ×2`);
   nextBidder();
 }
 
 function doSurcounter(playerIdx) {
   S.currentBid.surcounterBy = playerIdx;
   S.bidPassCount = 0;
-  showMessage(`${PLAYER_NAMES[playerIdx]} surcontre (×4) !`);
-  nextBidder();
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Surcontre ×4`);
+  // Surcontré : la manche commence tout de suite
+  finalizeBid();
 }
 
 function doPass(playerIdx) {
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Passe`);
   S.bidPassCount++;
-  if (S.bidPassCount >= 3) {
-    finalizeBid();
-    return;
+  if (!S.currentBid) {
+    if (S.bidPassCount >= 4) {
+      showMessage('Tout le monde passe, nouvelle donne...');
+      setTimeout(startRound, 1200);
+      return;
+    }
+  } else {
+    if (S.bidPassCount >= 3) {
+      finalizeBid();
+      return;
+    }
   }
   nextBidder();
 }
@@ -554,6 +529,7 @@ function nextBidder() {
 
 function finalizeBid() {
   const bid = S.currentBid;
+  if (!bid) return;
   S.trump = bid.suit;
   S.taker = bid.player;
   S.takerTeam = TEAM[bid.player];
@@ -574,7 +550,8 @@ function finalizeBid() {
   setTimeout(() => {
     S.phase = 'playing';
     S.trickNumber = 1;
-    S.currentPlayer = S.taker;
+    // Premier joueur = celui qui a fait le PREMIER appel (pas le preneur)
+    S.currentPlayer = S.firstBidder !== null ? S.firstBidder : S.taker;
     S.trick = [];
 
     for (let i = 0; i < 12; i++) S.hands[i % 4].push(S.reserveDeck[i]);
@@ -592,7 +569,8 @@ function startRound() {
   clearTimeout(S.aiTimer);
   S.hands = [[], [], [], []];
   S.reserveDeck = [];
-  S.trump = null; S.taker = null; S.takerTeam = null; S.trick = []; S.trickNumber = 0;
+  S.trump = null; S.taker = null; S.takerTeam = null; S.firstBidder = null;
+  S.trick = []; S.trickNumber = 0;
   S.phase = 'bidding'; S.currentBid = null; S.bidPassCount = 0; S.multiplier = 1;
   S.tricksWon = [[], [], [], []]; S.roundPoints = [0, 0];
   S.belote = { K: false, Q: false, K_team: null, Q_team: null };
@@ -618,14 +596,13 @@ function aiBid(playerIdx) {
 
   function evalColor(color) {
     const trumps = hand.filter(c => c.suit === color);
-    let score = 0;
-    let hasJ = false, has9 = false;
+    let score = 0, hasJ = false, has9 = false;
     for (const c of trumps) {
       if (c.rank === 'J')      { score += 10; hasJ = true; }
       else if (c.rank === '9') { score += 8;  has9 = true; }
-      else if (c.rank === 'A') { score += 5; }
-      else if (c.rank === '10'){ score += 4; }
-      else if (c.rank === 'K') { score += 1; }
+      else if (c.rank === 'A') score += 5;
+      else if (c.rank === '10')score += 4;
+      else if (c.rank === 'K') score += 1;
     }
     for (const c of hand) {
       if (c.suit !== color) {
@@ -640,7 +617,6 @@ function aiBid(playerIdx) {
     else if (trumps.length >= 4)  score += 2;
     return { score, trumps: trumps.length, hasJ, has9 };
   }
-
   function evalNone() {
     let score = 0;
     for (const c of hand) {
@@ -651,7 +627,6 @@ function aiBid(playerIdx) {
     }
     return { score };
   }
-
   function evalAll() {
     let score = 0, jCount = 0, nineCount = 0;
     for (const c of hand) {
@@ -669,6 +644,23 @@ function aiBid(playerIdx) {
   for (const m of ['♣', '♦', '♥', '♠']) evals[m] = evalColor(m);
   evals['none'] = evalNone();
   evals['all']  = evalAll();
+
+  // === Contré : seulement surcontre ou pass ===
+  if (bid && isContred()) {
+    if (canSurcounter(playerIdx)) {
+      const myEval = evals[bid.suit];
+      let worthSurcounter = false;
+      if (bid.suit === 'none') worthSurcounter = myEval.score >= 24;
+      else if (bid.suit === 'all') worthSurcounter = myEval.jCount >= 2 && myEval.nineCount >= 1;
+      else {
+        const trumps = hand.filter(c => c.suit === bid.suit);
+        worthSurcounter = trumps.length >= 4 && trumps.some(c => c.rank === 'J') && trumps.some(c => c.rank === '9');
+      }
+      if (worthSurcounter) { doSurcounter(playerIdx); return; }
+    }
+    doPass(playerIdx);
+    return;
+  }
 
   if (!bid) {
     let bestMode = '♣';
@@ -707,21 +699,6 @@ function aiBid(playerIdx) {
       worthCounter = trumps.length >= 3 || (trumps.length >= 2 && (hasJ || has9));
     }
     if (worthCounter && Math.random() < 0.55) { doCounter(playerIdx); return; }
-  }
-
-  if (canSurcounter(playerIdx)) {
-    let worthSurcounter = false;
-    if (bid.suit === 'none') {
-      worthSurcounter = myEval.score >= 24;
-    } else if (bid.suit === 'all') {
-      worthSurcounter = myEval.jCount >= 2 && myEval.nineCount >= 1;
-    } else {
-      const trumps = hand.filter(c => c.suit === bid.suit);
-      worthSurcounter = trumps.length >= 4
-                     && trumps.some(c => c.rank === 'J')
-                     && trumps.some(c => c.rank === '9');
-    }
-    if (worthSurcounter && Math.random() < 0.5) { doSurcounter(playerIdx); return; }
   }
 
   if (!sameTeam) {
@@ -778,7 +755,7 @@ function playCard(playerIdx, card) {
   if (S.currentPlayer !== 0) scheduleAI();
 }
 
-// ==================== ANIMATION FUSIONNÉE ====================
+// ==================== ANIMATION : glisser vers gagnant + fade ===
 function animateTrickToWinner(winnerPlayer) {
   const wraps = document.querySelectorAll('.trick-card-wrap');
   if (!wraps.length) return;
@@ -794,22 +771,21 @@ function animateTrickToWinner(winnerPlayer) {
     const dx = tcx - (r.left + r.width / 2);
     const dy = tcy - (r.top + r.height / 2);
 
-    wrap.style.transition = 'translate 0.7s cubic-bezier(0.22, 1, 0.36, 1), scale 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s';
+    wrap.style.transition = 'translate 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s ease-in';
 
     if (wrap === target) {
+      // Le gagnant reste visible avec glow
       wrap.style.translate = '0 0';
-      wrap.style.scale = '1.15';
       wrap.style.zIndex = '30';
     } else {
+      // Les autres glissent vers le gagnant ET disparaissent
       wrap.style.translate = `${dx}px ${dy}px`;
-      wrap.style.scale = '0.5';
-      wrap.style.opacity = '0.15';
+      wrap.style.opacity = '0';
       wrap.style.zIndex = '25';
     }
   });
 }
 
-// ==================== RESOLVE TRICK ====================
 function resolveTrick() {
   if (S.animating) return;
   S.animating = true;
@@ -878,28 +854,12 @@ function aiPlay(playerIdx) {
 
 function scheduleAI() {
   clearTimeout(S.aiTimer);
+  const delay = S.phase === 'bidding' ? 1000 : 800;
   S.aiTimer = setTimeout(() => {
     if (S.animating) return;
     if (S.phase === 'bidding' && S.currentPlayer !== 0) aiBid(S.currentPlayer);
     else if (S.phase === 'playing' && S.currentPlayer !== 0 && !S.trickResolved) aiPlay(S.currentPlayer);
-  }, 800);
-}
-
-// ==================== SCORE EN TEMPS RÉEL ====================
-function getCurrentPoints() {
-  if (S.takerTeam === null) return { bidder: 0, opp: 0 };
-  let bidder = 0, opp = 0;
-  for (let p = 0; p < 4; p++) {
-    const team = TEAM[p];
-    const pts = S.tricksWon[p].reduce((s, t) => s + t.points, 0);
-    if (team === S.takerTeam) bidder += pts;
-    else opp += pts;
-  }
-  if (S.belote.K && S.belote.Q && S.belote.K_team === S.belote.Q_team && S.belote.K_team !== null) {
-    if (S.belote.K_team === S.takerTeam) bidder += 20;
-    else opp += 20;
-  }
-  return { bidder, opp };
+  }, delay);
 }
 
 // ==================== SCORING FINAL ====================
@@ -925,14 +885,16 @@ function endRound() {
   const litige = LITIGE[S.trump];
   let outcome = 'normal';
 
+  // CAPOT : score logique (252) + bonus 150 (= 15 display) → total 402 × mult
   if (tricksCount[0] === 8 || tricksCount[1] === 8) {
     const capotTeam = tricksCount[0] === 8 ? 0 : 1;
-    finalPoints[capotTeam] = 252 * mult;
+    finalPoints[capotTeam] = (CAPOT_BASE + CAPOT_BONUS) * mult;
     finalPoints[1 - capotTeam] = 0;
     outcome = 'capot';
     S.roundWinner = capotTeam;
 
     if (capotTeam !== takerTeam) {
+      // Dedans capot : défaite immédiate
       S.gameOver = true;
       S.roundOutcome = 'dedans_capot';
       S.roundPoints = finalPoints;
@@ -943,14 +905,17 @@ function endRound() {
       return;
     }
   }
+  // CONTRAT RÉUSSI
   else if (pts[takerTeam] > litige) {
     finalPoints[0] = pts[0] * mult;
     finalPoints[1] = pts[1] * mult;
     S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
   }
+  // DEDANS : l'adversaire gagne TOUS les points de la manche
   else {
+    const allPts = pts[0] + pts[1];
     finalPoints[takerTeam] = 0;
-    finalPoints[oppTeam] = 252 * mult;
+    finalPoints[oppTeam] = allPts * mult;
     outcome = 'dedans';
     S.roundWinner = oppTeam;
   }
@@ -989,30 +954,6 @@ function renderScores() {
   const w0 = S.teamScores[0] >= TARGET_REAL, w1 = S.teamScores[1] >= TARGET_REAL;
   const d0 = Math.round(S.teamScores[0] / 10);
   const d1 = Math.round(S.teamScores[1] / 10);
-
-  let progressHTML = '';
-  if ((S.phase === 'playing' || S.phase === 'scoring') && S.takerTeam !== null) {
-    const { bidder } = getCurrentPoints();
-    const required = REQUIRED[S.trump];
-    const maxRange = required + 50;
-    const pct = Math.min(100, (bidder / maxRange) * 100);
-    const markerPct = (required / maxRange) * 100;
-    const success = bidder >= required;
-    const colorClass = success ? 'success' : '';
-    progressHTML = `
-      <div class="progress-section">
-        <div class="progress-labels">
-          <span>Preneur <strong>${PLAYER_NAMES[S.taker]}</strong> : <strong style="color:${success ? '#34d399' : '#fbbf24'}">${bidder}</strong> pts</span>
-          <span>Requis : <strong>${required}</strong></span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill ${colorClass}" style="width:${pct}%"></div>
-          <div class="progress-marker" style="left:${markerPct}%"></div>
-        </div>
-      </div>
-    `;
-  }
-
   return `
     <div class="scores">
       <div class="scores-row">
@@ -1029,7 +970,6 @@ function renderScores() {
           <div class="score-value" style="color:var(--gold);font-size:1.3em;">${TARGET_DISPLAY}</div>
         </div>
       </div>
-      ${progressHTML}
     </div>
   `;
 }
@@ -1080,7 +1020,6 @@ function renderTable() {
   `;
 }
 
-// ==================== NOUVELLE CARTE RÉALISTE MINIMALISTE ====================
 function renderCard(card, inHand, trickEntry) {
   const isRed = card.suit === '♥' || card.suit === '♦';
   let cls = 'card';
@@ -1129,28 +1068,35 @@ function renderActions() {
 
 function renderBiddingActions() {
   const bid = S.currentBid;
+  const contred = isContred();
   const higher = higherBids();
   const buttons = [];
 
-  for (const m of higher) {
-    const isRed = m === '♥' || m === '♦';
-    buttons.push(`<button class="btn btn-bid ${isRed ? 'red' : ''}" onclick="handleBidClick('${m}')">${BID_LABELS[m]}</button>`);
+  // Couleurs (uniquement si pas contré)
+  if (!contred) {
+    for (const m of higher) {
+      const isRed = m === '♥' || m === '♦';
+      buttons.push(`<button class="btn btn-bid ${isRed ? 'red' : ''}" onclick="handleBidClick('${m}')">${BID_LABELS[m]}</button>`);
+    }
+    if (canCounter(0)) {
+      buttons.push(`<button class="btn btn-counter" onclick="handleCounterClick()">Contrer ×2</button>`);
+    }
   }
 
-  if (canCounter(0)) {
-    buttons.push(`<button class="btn btn-counter" onclick="handleCounterClick()">Contrer ×2</button>`);
-  }
-  if (canSurcounter(0)) {
+  // Surcontre (uniquement si contré)
+  if (contred && canSurcounter(0)) {
     buttons.push(`<button class="btn btn-surcounter" onclick="handleSurcounterClick()">Surcontrer ×4</button>`);
   }
 
+  // Passer (uniquement si une enchère existe)
   if (bid) {
     buttons.push(`<button class="btn" onclick="handlePassClick()">Passer</button>`);
   }
 
-  const hint = bid
-    ? `Enchère actuelle : ${BID_LABELS[bid.suit]} par ${PLAYER_NAMES[bid.player]}`
-    : 'Vous devez annoncer une couleur (premier enchérisseur)';
+  let hint;
+  if (!bid) hint = 'Vous devez annoncer une couleur (premier enchérisseur)';
+  else if (contred) hint = `Enchère CONTRÉE : ${BID_LABELS[bid.suit]} par ${PLAYER_NAMES[bid.player]}`;
+  else hint = `Enchère actuelle : ${BID_LABELS[bid.suit]} par ${PLAYER_NAMES[bid.player]}`;
 
   return `
     <div class="actions">
@@ -1167,14 +1113,15 @@ function renderInfo() {
     info += `<strong>Enchères</strong>`;
     if (S.currentBid) {
       let badge = '';
-      if (S.currentBid.surcounterBy !== null && S.currentBid.surcounterBy !== undefined) badge = ' <span class="bid-surcounter">SURCONTRÉ ×4</span>';
-      else if (S.currentBid.counterBy !== null && S.currentBid.counterBy !== undefined) badge = ' <span class="bid-counter">CONTRÉ ×2</span>';
+      if (isSurcontred()) badge = ' <span class="bid-surcounter">SURCONTRÉ ×4</span>';
+      else if (isContred()) badge = ' <span class="bid-counter">CONTRÉ ×2</span>';
       info += ` • <span class="bid-current">${BID_LABELS[S.currentBid.suit]}</span> par <strong>${PLAYER_NAMES[S.currentBid.player]}</strong>${badge}`;
     }
   } else if (S.phase === 'bidding-done') {
     info += `<strong>Enchère validée</strong>`;
   } else if (S.phase === 'playing') {
     info += `Atout : <strong>${trumpLabel(S.trump)}</strong>`;
+    info += ` • Litige : <strong>${LITIGE[S.trump]} pts</strong>`;
     info += ` • Preneur : <strong>${PLAYER_NAMES[S.taker]}</strong>`;
     if (S.multiplier > 1) info += ` • <strong>×${S.multiplier}</strong>`;
     info += ` • Pli ${Math.min(S.trickNumber, 8)}/8`;
@@ -1187,10 +1134,10 @@ function renderRoundOver() {
   let explanation = '';
   if (S.roundOutcome === 'capot') {
     badge = `<div class="outcome-badge capot">🎯 CAPOT !</div>`;
-    explanation = `<div class="detail" style="color:var(--gold);">${TEAM_NAMES[S.roundWinner]} a remporté les 8 plis</div>`;
+    explanation = `<div class="detail" style="color:var(--gold);">${TEAM_NAMES[S.roundWinner]} a remporté les 8 plis (+15 bonus)</div>`;
   } else if (S.roundOutcome === 'dedans') {
     badge = `<div class="outcome-badge dedans">❌ DEDANS !</div>`;
-    explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} n'a pas atteint ${REQUIRED[S.trump]} pts → ${TEAM_NAMES[S.roundWinner]} marque 252 ×${S.multiplier}</div>`;
+    explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} échoue → ${TEAM_NAMES[S.roundWinner]} gagne TOUS les points</div>`;
   } else if (S.roundOutcome === 'dedans_capot') {
     badge = `<div class="outcome-badge dedans">❌ DEDANS CAPOT !</div>`;
     explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} a fait dedans avec capot adverse</div>`;
@@ -1264,6 +1211,19 @@ function showMessage(text) {
   msg.textContent = text;
   document.body.appendChild(msg);
   setTimeout(() => msg.remove(), 2200);
+}
+
+function showBidActionToast(text) {
+  document.querySelectorAll('.bid-action-toast').forEach(m => m.remove());
+  const toast = document.createElement('div');
+  toast.className = 'bid-action-toast';
+  toast.textContent = text;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.transition = 'opacity 0.3s';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 700);
 }
 
 function showBidToast(text) {
