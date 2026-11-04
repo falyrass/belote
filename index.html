@@ -27,6 +27,46 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .score-value { font-size: 1.8em; font-weight: 700; color: var(--accent-2); text-align: center; line-height: 1.1; }
 .score-value.winning { color: var(--gold); text-shadow: 0 0 20px rgba(251,191,36,0.5); }
 
+/* === LIVE POINTS : cumul en temps réel === */
+.live-points {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.live-team {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.live-team-name {
+  color: var(--text-2);
+  text-transform: uppercase;
+  font-size: 0.72em;
+  letter-spacing: 0.5px;
+}
+.live-team-pts {
+  font-weight: 800;
+  color: var(--accent-2);
+  font-size: 1.2em;
+  min-width: 32px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.live-team-pts.taker {
+  color: var(--gold);
+}
+.live-vs {
+  color: var(--text-2);
+  font-size: 0.8em;
+  opacity: 0.5;
+}
+
 .table { flex: 1; display: grid; grid-template-columns: 160px 1fr 160px; grid-template-rows: 130px 1fr 190px; gap: 10px; min-height: 0; }
 .seat { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 0; }
 .seat-north { grid-column: 2; grid-row: 1; }
@@ -63,7 +103,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .hand-visible .card { margin-left: var(--hand-overlap); }
 .hand-visible .card:first-child { margin-left: 0; }
 
-/* ==================== CARTE RÉALISTE MINIMALISTE ==================== */
+/* ==================== CARTE ==================== */
 .card {
   width: var(--card-w);
   height: var(--card-h);
@@ -139,27 +179,52 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
 .message { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); padding: 10px 20px; background: var(--bg-3); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); animation: slideDown 0.3s; z-index: 1000; font-weight: 600; font-size: 0.9em; max-width: 90vw; text-align: center; }
 @keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-/* Toast d'action d'enchère (petit, 1s) */
+/* === TOAST D'ACTION D'ENCHÈRE (positionné par joueur) === */
 .bid-action-toast {
   position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 20px;
-  background: rgba(30, 41, 59, 0.95);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  border-radius: 20px;
+  padding: 10px 22px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+  border: 2px solid rgba(251, 191, 36, 0.8);
+  border-radius: 22px;
   z-index: 1500;
-  font-weight: 600;
-  font-size: 0.85em;
+  font-weight: 800;
+  font-size: 0.9em;
   color: var(--text);
   pointer-events: none;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-  animation: bidActionPop 0.15s ease-out;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.7), 0 0 20px rgba(251,191,36,0.3);
+  animation: bidActionPop 0.2s ease-out;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 @keyframes bidActionPop {
-  from { opacity: 0; transform: translate(-50%, -10px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* === POSITIONS PAR JOUEUR === */
+/* Sud (Vous) : au-dessus des cartes du bas */
+.bid-action-toast[data-player="0"] {
+  bottom: 210px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+/* Est : à droite, au-dessus du siège */
+.bid-action-toast[data-player="1"] {
+  right: 60px;
+  top: 30%;
+  transform: translateY(-50%);
+}
+/* Nord : en haut, au-dessus du siège */
+.bid-action-toast[data-player="2"] {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+/* Ouest : à gauche, au-dessus du siège */
+.bid-action-toast[data-player="3"] {
+  left: 60px;
+  top: 30%;
+  transform: translateY(-50%);
 }
 
 /* Gros toast central (enchère validée) */
@@ -193,6 +258,12 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .btn { padding: 9px 16px; font-size: 0.9em; }
   .btn-bid { min-width: 60px; }
   .trick-area { min-height: 230px; }
+  .bid-action-toast[data-player="0"] { bottom: 180px; }
+  .bid-action-toast[data-player="1"] { right: 40px; }
+  .bid-action-toast[data-player="3"] { left: 40px; }
+  .bid-action-toast[data-player="2"] { top: 15px; }
+  .live-team-name { font-size: 0.68em; }
+  .live-team-pts { font-size: 1.1em; }
 }
 
 /* ==================== MOBILES ==================== */
@@ -214,14 +285,7 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .seat-north .card-back { margin-left: -16px; }
   .seat-west .card-back, .seat-east .card-back { margin-top: -34px; }
 
-  /* Main : plus large, cartes plus espacées */
-  .hand-visible {
-    width: 100%;
-    margin: 0 auto;
-    padding: 4px 0;
-    min-height: calc(var(--card-h) + 8px);
-    overflow: visible;
-  }
+  .hand-visible { width: 100%; margin: 0 auto; padding: 4px 0; min-height: calc(var(--card-h) + 8px); overflow: visible; }
 
   .card-corner-tl { top: 3px; left: 4px; }
   .card-corner-br { bottom: 3px; right: 4px; }
@@ -236,12 +300,27 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .btn-bid { min-width: 54px; font-size: 0.95em; }
   .info-bar { font-size: 0.72em; padding: 6px 10px; }
   .message { font-size: 0.8em; padding: 8px 14px; top: 10px; }
-  .bid-action-toast { top: 60px; font-size: 0.78em; padding: 6px 16px; }
   .bid-toast { font-size: 1em; padding: 16px 22px; border-width: 2px; }
   .overlay-content { padding: 24px 18px; }
   .overlay-content h2 { font-size: 1.35em; margin-bottom: 12px; }
   .overlay-content .detail { font-size: 0.9em; }
   .outcome-badge { font-size: 1.1em; }
+
+  /* Live points mobile */
+  .live-points { gap: 10px; padding: 5px 8px; }
+  .live-team-name { font-size: 0.6em; }
+  .live-team-pts { font-size: 1em; min-width: 26px; }
+
+  /* Toast d'enchère mobile : positions ajustées */
+  .bid-action-toast {
+    font-size: 0.75em;
+    padding: 7px 14px;
+    border-width: 1.5px;
+  }
+  .bid-action-toast[data-player="0"] { bottom: 150px; }
+  .bid-action-toast[data-player="1"] { right: 45px; top: 28%; }
+  .bid-action-toast[data-player="2"] { top: 90px; }
+  .bid-action-toast[data-player="3"] { left: 45px; top: 28%; }
 }
 
 /* ==================== TRÈS PETITS MOBILES ==================== */
@@ -260,6 +339,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .corner-rank { font-size: 12px; }
   .corner-suit { font-size: 10px; }
   .card-center { font-size: 20px; }
+  .bid-action-toast[data-player="0"] { bottom: 135px; }
+  .bid-action-toast[data-player="2"] { top: 80px; }
+  .bid-action-toast[data-player="1"] { right: 35px; }
+  .bid-action-toast[data-player="3"] { left: 35px; }
 }
 
 /* ==================== PAYSAGE MOBILE ==================== */
@@ -282,6 +365,10 @@ body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg);
   .corner-rank { font-size: 14px; }
   .corner-suit { font-size: 12px; }
   .card-center { font-size: 24px; }
+  .live-points { padding: 3px 8px; }
+  .bid-action-toast { font-size: 0.7em; padding: 5px 12px; }
+  .bid-action-toast[data-player="0"] { bottom: 125px; }
+  .bid-action-toast[data-player="2"] { top: 70px; }
 }
 
 @media (hover: none) {
@@ -444,8 +531,18 @@ function resetState() {
     roundPoints: [0, 0], belote: { K: false, Q: false, K_team: null, Q_team: null },
     roundOutcome: 'normal', roundWinner: null,
     roundOver: false, gameOver: false, aiTimer: null,
-    trickResolved: false, animating: false
+    trickResolved: false, animating: false,
+    lastAction: null  // { text, player, ts }
   };
+}
+
+// ==================== LIVE POINTS (cumul temps réel) ====================
+function getLivePoints() {
+  const pts = [0, 0];
+  for (let p = 0; p < 4; p++) {
+    pts[TEAM[p]] += S.tricksWon[p].reduce((s, t) => s + t.points, 0);
+  }
+  return pts;
 }
 
 // ==================== BIDDING ====================
@@ -472,7 +569,6 @@ function isSurcontred() {
 }
 
 function higherBids() {
-  // Si contré : aucune montée possible
   if (isContred()) return [];
   if (!S.currentBid) return [...BID_ORDER];
   const idx = BID_ORDER.indexOf(S.currentBid.suit);
@@ -483,7 +579,7 @@ function doBid(playerIdx, suit) {
   S.currentBid = { suit, player: playerIdx, counterBy: null, surcounterBy: null };
   S.bidPassCount = 0;
   if (S.firstBidder === null || S.firstBidder === undefined) S.firstBidder = playerIdx;
-  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → ${BID_LABELS[suit]}`);
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → ${BID_LABELS[suit]}`, playerIdx);
   nextBidder();
 }
 
@@ -491,20 +587,19 @@ function doCounter(playerIdx) {
   S.currentBid.counterBy = playerIdx;
   S.currentBid.surcounterBy = null;
   S.bidPassCount = 0;
-  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Contre ×2`);
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Contre ×2`, playerIdx);
   nextBidder();
 }
 
 function doSurcounter(playerIdx) {
   S.currentBid.surcounterBy = playerIdx;
   S.bidPassCount = 0;
-  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Surcontre ×4`);
-  // Surcontré : la manche commence tout de suite
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Surcontre ×4`, playerIdx);
   finalizeBid();
 }
 
 function doPass(playerIdx) {
-  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Passe`);
+  showBidActionToast(`${PLAYER_NAMES[playerIdx]} → Passe`, playerIdx);
   S.bidPassCount++;
   if (!S.currentBid) {
     if (S.bidPassCount >= 4) {
@@ -550,7 +645,6 @@ function finalizeBid() {
   setTimeout(() => {
     S.phase = 'playing';
     S.trickNumber = 1;
-    // Premier joueur = celui qui a fait le PREMIER appel (pas le preneur)
     S.currentPlayer = S.firstBidder !== null ? S.firstBidder : S.taker;
     S.trick = [];
 
@@ -645,7 +739,6 @@ function aiBid(playerIdx) {
   evals['none'] = evalNone();
   evals['all']  = evalAll();
 
-  // === Contré : seulement surcontre ou pass ===
   if (bid && isContred()) {
     if (canSurcounter(playerIdx)) {
       const myEval = evals[bid.suit];
@@ -755,7 +848,7 @@ function playCard(playerIdx, card) {
   if (S.currentPlayer !== 0) scheduleAI();
 }
 
-// ==================== ANIMATION : glisser vers gagnant + fade ===
+// ==================== ANIMATION ====================
 function animateTrickToWinner(winnerPlayer) {
   const wraps = document.querySelectorAll('.trick-card-wrap');
   if (!wraps.length) return;
@@ -774,11 +867,9 @@ function animateTrickToWinner(winnerPlayer) {
     wrap.style.transition = 'translate 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.7s ease-in';
 
     if (wrap === target) {
-      // Le gagnant reste visible avec glow
       wrap.style.translate = '0 0';
       wrap.style.zIndex = '30';
     } else {
-      // Les autres glissent vers le gagnant ET disparaissent
       wrap.style.translate = `${dx}px ${dy}px`;
       wrap.style.opacity = '0';
       wrap.style.zIndex = '25';
@@ -885,7 +976,7 @@ function endRound() {
   const litige = LITIGE[S.trump];
   let outcome = 'normal';
 
-  // CAPOT : score logique (252) + bonus 150 (= 15 display) → total 402 × mult
+  // CAPOT
   if (tricksCount[0] === 8 || tricksCount[1] === 8) {
     const capotTeam = tricksCount[0] === 8 ? 0 : 1;
     finalPoints[capotTeam] = (CAPOT_BASE + CAPOT_BONUS) * mult;
@@ -894,7 +985,6 @@ function endRound() {
     S.roundWinner = capotTeam;
 
     if (capotTeam !== takerTeam) {
-      // Dedans capot : défaite immédiate
       S.gameOver = true;
       S.roundOutcome = 'dedans_capot';
       S.roundPoints = finalPoints;
@@ -907,11 +997,20 @@ function endRound() {
   }
   // CONTRAT RÉUSSI
   else if (pts[takerTeam] > litige) {
-    finalPoints[0] = pts[0] * mult;
-    finalPoints[1] = pts[1] * mult;
-    S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
+    if (mult > 1) {
+      // CONTRÉ / SURCONTRÉ réussi : seul le preneur marque TOUS les points
+      const allPts = pts[0] + pts[1];
+      finalPoints[takerTeam] = allPts * mult;
+      finalPoints[oppTeam] = 0;
+      S.roundWinner = takerTeam;
+    } else {
+      // Normal : chaque équipe marque ses points
+      finalPoints[0] = pts[0];
+      finalPoints[1] = pts[1];
+      S.roundWinner = pts[0] > pts[1] ? 0 : (pts[1] > pts[0] ? 1 : -1);
+    }
   }
-  // DEDANS : l'adversaire gagne TOUS les points de la manche
+  // DEDANS : l'adversaire gagne TOUS les points
   else {
     const allPts = pts[0] + pts[1];
     finalPoints[takerTeam] = 0;
@@ -941,6 +1040,7 @@ const app = document.getElementById('app');
 function render() {
   app.innerHTML = `
     ${renderScores()}
+    ${renderLivePoints()}
     ${renderTable()}
     ${renderActions()}
     ${renderInfo()}
@@ -969,6 +1069,28 @@ function renderScores() {
           <div class="score-team">Objectif</div>
           <div class="score-value" style="color:var(--gold);font-size:1.3em;">${TARGET_DISPLAY}</div>
         </div>
+      </div>
+    </div>
+  `;
+}
+
+// === Nouveau : cumul de points en temps réel ===
+function renderLivePoints() {
+  if (S.phase !== 'playing' && S.phase !== 'scoring') return '';
+  const pts = getLivePoints();
+  const takerTeam = S.takerTeam;
+  const c0 = (takerTeam === 0) ? 'taker' : '';
+  const c1 = (takerTeam === 1) ? 'taker' : '';
+  return `
+    <div class="live-points">
+      <div class="live-team">
+        <span class="live-team-name">${TEAM_NAMES[0]}</span>
+        <span class="live-team-pts ${c0}">${pts[0]}</span>
+      </div>
+      <span class="live-vs">·</span>
+      <div class="live-team">
+        <span class="live-team-pts ${c1}">${pts[1]}</span>
+        <span class="live-team-name">${TEAM_NAMES[1]}</span>
       </div>
     </div>
   `;
@@ -1072,7 +1194,6 @@ function renderBiddingActions() {
   const higher = higherBids();
   const buttons = [];
 
-  // Couleurs (uniquement si pas contré)
   if (!contred) {
     for (const m of higher) {
       const isRed = m === '♥' || m === '♦';
@@ -1083,12 +1204,10 @@ function renderBiddingActions() {
     }
   }
 
-  // Surcontre (uniquement si contré)
   if (contred && canSurcounter(0)) {
     buttons.push(`<button class="btn btn-surcounter" onclick="handleSurcounterClick()">Surcontrer ×4</button>`);
   }
 
-  // Passer (uniquement si une enchère existe)
   if (bid) {
     buttons.push(`<button class="btn" onclick="handlePassClick()">Passer</button>`);
   }
@@ -1141,6 +1260,9 @@ function renderRoundOver() {
   } else if (S.roundOutcome === 'dedans_capot') {
     badge = `<div class="outcome-badge dedans">❌ DEDANS CAPOT !</div>`;
     explanation = `<div class="detail" style="color:var(--red);">${TEAM_NAMES[S.takerTeam]} a fait dedans avec capot adverse</div>`;
+  } else if (S.multiplier > 1) {
+    badge = `<div class="outcome-badge capot">💰 CONTRÉ ×${S.multiplier}</div>`;
+    explanation = `<div class="detail" style="color:var(--gold);">${TEAM_NAMES[S.takerTeam]} réussit le contrat contrés → ${TEAM_NAMES[S.takerTeam]} prend TOUS les points</div>`;
   }
 
   const dPts0 = Math.round(S.roundPoints[0] / 10);
@@ -1213,17 +1335,19 @@ function showMessage(text) {
   setTimeout(() => msg.remove(), 2200);
 }
 
-function showBidActionToast(text) {
+// === Toast d'enchère positionné par joueur ===
+function showBidActionToast(text, playerIdx) {
   document.querySelectorAll('.bid-action-toast').forEach(m => m.remove());
   const toast = document.createElement('div');
   toast.className = 'bid-action-toast';
+  toast.setAttribute('data-player', playerIdx);
   toast.textContent = text;
   document.body.appendChild(toast);
   setTimeout(() => {
     toast.style.transition = 'opacity 0.3s';
     toast.style.opacity = '0';
     setTimeout(() => toast.remove(), 300);
-  }, 700);
+  }, 900);
 }
 
 function showBidToast(text) {
